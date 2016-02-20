@@ -1,7 +1,9 @@
-# hello-world
+# Welcome
 
-Hi Humans!
+> “We are a way for the universe to know itself. Some part of our being knows this is where we came from. We long to return. And we can, because the cosmos is also within us. We're made of star stuff.”
 
-This is my main repository, containing bits and pieces of scripts I've created or copied off the internet for safe-keeping.
+> – Carl Sagan
 
-Feel free to submit merge requests if you come up with improvements or fixes.
+[Software and sites](software-and-sites.md).
+
+[PGP public key](pgp.md), with a fingerprint of `8F67 4598 B16D 9523 ADE1 A3E9 D253 2246 6817 E7B2`.
