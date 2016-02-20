@@ -12,8 +12,8 @@ First we need to create a CSR file and a private key. We use the private key on 
 
 Create the CSR:
 
-```bash
-openssl req -out www.here.dk.csr -new -newkey rsa:2048 -nodes -keyout www.here.dk.key`
+```Shell
+openssl req -out www.here.dk.csr -new -newkey rsa:2048 -nodes -keyout www.here.dk.key
 ```
 
 If you haven’t already, it’s time to register with [StartSSL.com](http://www.startssl.com/) and submit the CSR.
@@ -26,7 +26,7 @@ This is all that is required to get the certificate. Installing it should be cov
 
 I do recommend taking the extra step of creating an encrypted PKCS#12 backup file in case you need to access the certificate again at a later date:
 
-```bash
+```Shell
 openssl pkcs12 -export -out www.here.dk.pfx -inkey www.here.dk.key -in www.here.dk.crt -certfile sub.class1.server.ca.pem
 ```
 
