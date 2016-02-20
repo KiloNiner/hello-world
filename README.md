@@ -2,5 +2,6 @@
 
 Hi Humans!
 
-KiloNiner here, I like PowerShell and Coffee (that's what I'm made of!).
-I've had tacos on the moon and find them far superior to Earth tacos.
+This is my main repository, containing bits and pieces of scripts I've created or copied off the internet for safe-keeping.
+
+Feel free to submit merge requests if you come up with improvements or fixes.
