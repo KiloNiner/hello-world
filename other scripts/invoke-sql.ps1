@@ -1,5 +1,5 @@
 # Found on stack exchange, allows you to perform a query against a MSSQL database with no additional dependencies.
-function Invoke-SQL 
+function Invoke-SQL
 {
     param(
         [string] $dataSource = '.\SQLEXPRESS',
