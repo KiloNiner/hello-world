@@ -39,27 +39,27 @@ function Get-RiddlerAuthenticationToken
     $HttpHeaders = @{
         'Content-Type' = 'application/json'
     }
-    
+
     $RestResult = Invoke-RestMethod -Method Post -Uri 'https://riddler.io/auth/login' -Body $JsonCredentials -Headers $HttpHeaders
 
     switch ($RestResult.'meta'.'code') {
-        200 
+        200
         {
             $Id = $RestResult.'response'.'user'.'id'
             $Token = $RestResult.'response'.'user'.'authentication_token'
-    
+
             $Token
 
             Write-Verbose -Message ('id: {0}' -f $Id)
-            Write-Verbose -Message ('token: {0}' -f $Token)            
+            Write-Verbose -Message ('token: {0}' -f $Token)
         }
-        
-        400 
+
+        400
         {
             Write-Error -Message 'Username/password combination was rejected by the server.' -ErrorAction Stop
         }
-    
-        default 
+
+        default
         {
             Write-Error ('An unexpected returncode of {0} was received from the server.' -f $_) -ErrorAction Stop
         }
@@ -104,7 +104,7 @@ function Get-RiddlerSearchResult
         * tld          : Top level domain.
 
     #>
-    
+
     [CmdletBinding()]
     param
     (
@@ -112,24 +112,24 @@ function Get-RiddlerSearchResult
         [Parameter(Mandatory = $true)]
         [string]
         $Token,
-        
+
         # query to present to riddler.io
         [Parameter(Mandatory = $true)]
         [string]
         $Query,
-        
+
         # optional result set size limit, default 25
         [Parameter(Mandatory = $false)]
         [uint32]
         $Limit = 25,
-        
+
         # optional list of attributes to return, default addr, host
         [Parameter(Mandatory = $false)]
         [ValidateSet('addr','applications','cordinates','country_code','host','keywords','pld','tld')]
         [string[]]
         $Output = @('addr', 'host')
     )
-    
+
     $JsonQuery = @{
         'query' = $Query
         'output' = $Output -join ','
@@ -139,15 +139,15 @@ function Get-RiddlerSearchResult
         'Authentication-Token' = $Token
         'Content-Type'       = 'application/json'
     }
-    
+
     Write-Verbose -Message ('output: {0}' -f ($Output -join ', '))
     Write-Verbose -Message ('token: {0}' -f $Token)
     Write-Verbose -Message ('query: {0}' -f $Query)
     Write-Verbose -Message ('limit: {0}' -f $Limit)
-    
+
     $Result = Invoke-RestMethod -Method Post -Uri 'https://riddler.io/api/search' -Body $JsonQuery -Headers $HttpHeaders -ErrorAction Stop
     Write-Verbose -Message ('Result set size: {0}' -f $Result.'data'.count )
-    
+
     $Result.'data'
 }
 
