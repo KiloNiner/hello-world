@@ -4,6 +4,6 @@
 
 > – Carl Sagan
 
-[Software and sites](software-and-sites.md).
+[Software and sites](pages/software-and-sites.md).
 
-[PGP public key](pgp.md), with a fingerprint of `8F67 4598 B16D 9523 ADE1 A3E9 D253 2246 6817 E7B2`.
+[PGP public key](pages/pgp.md), with a fingerprint of `8F67 4598 B16D 9523 ADE1 A3E9 D253 2246 6817 E7B2`.
