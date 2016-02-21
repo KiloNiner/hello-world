@@ -23,3 +23,6 @@
 * [Transmit](https://itunes.apple.com/dk/app/transmit/id403388562?mt=12) for pushing bits over the internet.
 * [Ultimate Status Bar](http://ultimatestatusbar.com/) for Safari.
 * [VLC](http://www.videolan.org/) for watching videos.
+
+## Interesting repos:
+* [LetsEncrypt-nosudo](https://github.com/diafygi/letsencrypt-nosudo), a minimal client for LetsEncrypt.
