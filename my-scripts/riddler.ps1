@@ -82,8 +82,8 @@ function Get-RiddlerSearchResult
         Perform a search for 'country:dk keyword:apache' using a token retrieved with the following (example) command:
         $RiddlerAuthenticationToken = Get-RiddlerAuthenticationToken -email 'demo@example.com' -password 's3cr3t'
         .EXAMPLE
-        Get-RiddlerSearchResult  -token $RiddlerAuthenticationToken -query 'country:dk keyword:apache' -limit 5 -output addr,cordinates,pld
-        Perform a search for 'country:dk keyword:apache', limited to 5 results and including the attributes addr,cordinates, and pld.
+        Get-RiddlerSearchResult  -token $RiddlerAuthenticationToken -query 'country:dk keyword:apache' -limit 5 -output addr,coordinates,pld
+        Perform a search for 'country:dk keyword:apache', limited to 5 results and including the attributes addr,coordinates, and pld.
         .PARAMETER token
         A valid authentication token from Riddler.io, often retrieved via Get-RiddlerAuthenticationToken.
         .PARAMETER query
@@ -96,7 +96,7 @@ function Get-RiddlerSearchResult
         Valid values are:
         * addr         : the IP address of the host.
         * applications : Headers and initial response from the host.
-        * cordinates   : GeoIP coordinates of the host.
+        * coordinates  : GeoIP coordinates of the host.
         * country_code : GeoIP country of the host.
         * host         : FQDN of the host.
         * keywords     : keywords associated with the host.
@@ -125,7 +125,7 @@ function Get-RiddlerSearchResult
 
         # optional list of attributes to return, default addr, host
         [Parameter(Mandatory = $false)]
-        [ValidateSet('addr','applications','cordinates','country_code','host','keywords','pld','tld')]
+        [ValidateSet('addr','applications','coordinates','country_code','host','keywords','pld','tld')]
         [string[]]
         $Output = @('addr', 'host')
     )
