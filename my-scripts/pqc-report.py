@@ -303,10 +303,18 @@ def test_pqc_group(
         or ("error" in lower_output and group_name.lower() in lower_output)
     ):
         result.status = STATUS_UNTESTABLE
-        result.notes = (
-            f"The local OpenSSL build does not recognise the group '{group_name}'. "
-            "A newer OpenSSL version or an OQS-provider build is required to test this group."
-        )
+        if group_name == "X25519Kyber768Draft00":
+            result.notes = (
+                f"The local OpenSSL build does not recognise the group '{group_name}'. "
+                "This draft name was used by older OpenSSL and BoringSSL-based clients; "
+                "OpenSSL 3.5+ supersedes it with 'X25519MLKEM768'. "
+                "If running a newer OpenSSL, test X25519MLKEM768 instead."
+            )
+        else:
+            result.notes = (
+                f"The local OpenSSL build does not recognise the group '{group_name}'. "
+                "A newer OpenSSL version or an OQS-provider build is required to test this group."
+            )
         # Capture the relevant error line as evidence
         for line in output.splitlines():
             if "group" in line.lower() or "option" in line.lower():
