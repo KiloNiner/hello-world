@@ -254,7 +254,7 @@ def test_pqc_group(
     Strategy: offer the PQC group first in the -groups list (with X25519 as fallback)
     and inspect what the server selects via the 'Server Temp Key' line in the output.
     """
-    result = GroupTestResult(group_name=group_name)
+    result = GroupTestResult(group_name=group_name, status=STATUS_ERROR)
 
     groups_value = f"{group_name}:X25519"
     cmd = [
@@ -643,7 +643,7 @@ def main() -> None:
     args = parse_args()
     domains = load_domains(args)
 
-    generated_at = datetime.datetime.utcnow()
+    generated_at = datetime.datetime.now(datetime.UTC)
     openssl_version = get_openssl_version()
 
     if args.verbose:
