@@ -30,7 +30,9 @@ PQC_GROUPS = [
         "X25519Kyber768Draft00",
         "X25519Kyber768Draft00",
         "Hybrid key exchange combining X25519 (classical) with Kyber-768 (draft). "
-        "Deployed by Cloudflare and supported by Chrome since 2023.",
+        "Deployed by Cloudflare and supported by Chrome since 2023. "
+        "Note: newer OpenSSL versions (3.5+) may have superseded this draft name with "
+        "`X25519MLKEM768` — if this group tests as untestable, try `X25519MLKEM768` instead.",
     ),
     (
         "X25519MLKEM768",
@@ -545,12 +547,13 @@ def generate_report(
     lines.append(
         "For each PQC group below, `openssl s_client` is invoked with `-tls1_3` "
         "and `-groups <PQC_GROUP>:X25519`. The PQC group is advertised first so that "
-        "a supporting server will select it. The `Server Temp Key` field in the "
-        "handshake output reveals which group was actually negotiated:"
+        "a supporting server will select it. The `Peer Temp Key` field in the "
+        "handshake output (labelled `Server Temp Key` in older OpenSSL versions) "
+        "reveals which group was actually negotiated:"
     )
     lines.append("")
     lines.append(
-        "- If the PQC group name appears in `Server Temp Key`, the server **supports** it."
+        "- If the PQC group name appears in `Peer Temp Key`, the server **supports** it."
     )
     lines.append(
         "- If the server falls back to X25519, the server **does not support** the PQC group."
