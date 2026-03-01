@@ -263,7 +263,6 @@ def test_pqc_group(
         "-tls1_3",
         "-groups", groups_value,
         "-brief",
-        "-quiet",
     ]
 
     try:
@@ -298,6 +297,7 @@ def test_pqc_group(
         or "invalid group" in lower_output
         or "unknown option" in lower_output
         or "bad -groups option" in lower_output
+        or "ssl_conf_cmd" in lower_output
         or ("error" in lower_output and group_name.lower() in lower_output)
     ):
         result.status = STATUS_UNTESTABLE
