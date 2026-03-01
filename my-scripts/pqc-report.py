@@ -312,26 +312,31 @@ def test_pqc_group(
                 break
         return result
 
-    # Look for 'Server Temp Key' to discover what was actually negotiated
-    server_temp_key_line = ""
+    # Look for key negotiation output in the openssl response.
+    # OpenSSL -brief (3.x) emits "Negotiated TLS1.3 group: <name>" when a named
+    # group was used, or "Peer Temp Key: <algo>, <bits>" for a classical fallback.
+    # Older/verbose OpenSSL uses "Server Temp Key: <algo>, <bits>".
+    negotiated_group_line = ""
+    key_line = ""
     for line in output.splitlines():
-        if line.strip().lower().startswith("server temp key"):
-            server_temp_key_line = line.strip()
-            break
+        stripped_lower = line.strip().lower()
+        if stripped_lower.startswith("negotiated tls1.3 group"):
+            negotiated_group_line = line.strip()
+            break  # most specific indicator — stop searching
+        if stripped_lower.startswith("server temp key") or stripped_lower.startswith("peer temp key"):
+            key_line = line.strip()  # keep scanning; a negotiated group line may follow
 
-    if server_temp_key_line:
-        result.evidence = server_temp_key_line
-        # Check whether the PQC group name appears in the selected key line
-        # (case-insensitive, without the "Draft00" suffix for looser matching)
+    effective_line = negotiated_group_line or key_line
+    if effective_line:
+        result.evidence = effective_line
         base_name = group_name.replace("Draft00", "").lower()
-        if base_name in server_temp_key_line.lower() or group_name.lower() in server_temp_key_line.lower():
+        if base_name in effective_line.lower() or group_name.lower() in effective_line.lower():
             result.status = STATUS_SUPPORTED
-            result.negotiated_group = server_temp_key_line.split(":", 1)[-1].strip()
+            result.negotiated_group = effective_line.split(":", 1)[-1].strip()
             result.notes = "Server selected the PQC group when it was offered."
         else:
-            # Server replied with a different group (fell back to X25519)
             result.status = STATUS_UNSUPPORTED
-            result.negotiated_group = server_temp_key_line.split(":", 1)[-1].strip()
+            result.negotiated_group = effective_line.split(":", 1)[-1].strip()
             result.notes = (
                 f"Server fell back to a non-PQC group ({result.negotiated_group}) "
                 "when offered this PQC group; PQC not supported."
