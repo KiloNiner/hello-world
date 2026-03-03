@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.10"
+# dependencies = [
+#   "requests",
+#   "beautifulsoup4",
+# ]
+# ///
 """
 meekcomic_downloader.py — Download all pages from https://www.meekcomic.com/
 and compress them into a zip archive.
 
 Usage:
-    python3 meekcomic_downloader.py [options]
+    pipx run meekcomic_downloader.py [options]
 
 Options:
     --output DIR     Directory to save images (default: meekcomic_pages)
@@ -23,6 +30,8 @@ Notes:
     - Files are named NNN_chapterslug.ext so alphabetical sort = reading order.
     - The script follows "next page" navigation links so it adapts automatically
       if the chapter/page count changes.
+    - Dependencies are declared inline (PEP 723); run with `pipx run` and they
+      are installed automatically in an isolated environment.
 """
 
 import argparse
@@ -38,8 +47,9 @@ try:
     import requests
     from bs4 import BeautifulSoup
 except ImportError:
-    print("ERROR: Missing dependencies. Install them with:")
-    print("  pip install requests beautifulsoup4")
+    print("ERROR: Missing dependencies. Run the script via:")
+    print("  pipx run meekcomic_downloader.py")
+    print("Or install manually: pip install requests beautifulsoup4")
     sys.exit(1)
 
 # ---------------------------------------------------------------------------
