@@ -243,6 +243,7 @@ def collect_comic_urls(session: requests.Session, archive_url: str, timeout: int
 
         for a in soup.find_all("a", href=True):
             href = urljoin(page_url, a["href"])
+            href = urlparse(href)._replace(fragment="").geturl()  # strip #comments etc.
             if _COMIC_SLUG_RE.search(urlparse(href).path) and href not in seen:
                 seen.add(href)
                 comic_urls.append(href)
