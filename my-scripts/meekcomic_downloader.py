@@ -367,7 +367,27 @@ def parse_args() -> argparse.Namespace:
                               help="Redownload all pages")
     parser.add_argument("--no-zip", action="store_true",
                         help="Skip creating the zip archive")
+    parser.add_argument("--debug-nav", action="store_true",
+                        help="Dump all <a> tags from the first page and exit (for diagnosing nav issues)")
     return parser.parse_args()
+
+
+def _debug_nav(start_url: str, timeout: int) -> None:
+    """Fetch start_url and dump every <a> tag so nav selectors can be diagnosed."""
+    session = make_session(timeout)
+    soup = fetch_page(session, start_url, timeout)
+    if soup is None:
+        print("ERROR: could not fetch page.", file=sys.stderr)
+        return
+    print(f"Page title: {soup.title.string if soup.title else '(none)'}")
+    print(f"\nAll <a> tags ({len(soup.find_all('a'))} total):")
+    print(f"{'TEXT':<30} {'CLASS':<50} HREF")
+    print("-" * 110)
+    for a in soup.find_all("a"):
+        text = a.get_text(strip=True)[:28]
+        classes = " ".join(a.get("class", []))[:48]
+        href = a.get("href", "")[:60]
+        print(f"{text:<30} {classes:<50} {href}")
 
 
 def main() -> None:
@@ -385,6 +405,10 @@ def main() -> None:
     print(f"Delay      : {args.delay}s | Timeout: {args.timeout}s")
     print(f"Resume     : {args.resume}")
     print()
+
+    if args.debug_nav:
+        _debug_nav(args.start_url, args.timeout)
+        return
 
     files = download_all(
         start_url=args.start_url,
