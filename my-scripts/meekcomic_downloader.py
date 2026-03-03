@@ -28,8 +28,10 @@ Notes:
     - The comic has ~200+ pages across 5 chapters; a full download may take
       several minutes. Use --limit 10 for a quick test run.
     - Files are named NNN_chapterslug.ext so alphabetical sort = reading order.
-    - The script follows "next page" navigation links so it adapts automatically
-      if the chapter/page count changes.
+    - The site's /comic/ URL is an archive listing (newest-first, paginated).
+      The script walks the ←older pagination to collect every comic URL, reverses
+      the list to get chronological order, then visits each page to download its
+      image.
     - Dependencies are declared inline (PEP 723); run with `pipx run` and they
       are installed automatically in an isolated environment.
 """
@@ -57,6 +59,11 @@ except ImportError:
 # ---------------------------------------------------------------------------
 
 START_URL = "https://www.meekcomic.com/comic/"
+
+# Matches the archive listing URLs: /comic/ or /comic/page/N/
+_ARCHIVE_PAGE_RE = re.compile(r"/comic/(?:page/\d+/)?$")
+# Matches individual comic pages: /comic/SLUG/ (excludes /comic/page/N/)
+_COMIC_SLUG_RE = re.compile(r"/comic/(?!page/)[\w.%-]+/$")
 
 # Browser-like headers to avoid 403s
 HEADERS = {
@@ -91,7 +98,7 @@ NEXT_SELECTORS = [
     "a.navi-next",
     "a.btn-next",
     ".navigation a[href*='next']",
-    "a:contains('Next')",          # fallback — text-based
+    "a:-soup-contains('Next')",     # fallback — text-based (soupsieve)
 ]
 
 # Ordered CSS selectors to try when looking for the "first page" navigation link
@@ -218,6 +225,44 @@ def ext_from_url(url: str) -> str:
 # Core download loop
 # ---------------------------------------------------------------------------
 
+def collect_comic_urls(session: requests.Session, archive_url: str, timeout: int) -> list[str]:
+    """
+    Walk the archive listing pages (oldest → newest via ←older links),
+    collect every individual comic URL, and return them in chronological order.
+    """
+    comic_urls: list[str] = []
+    seen: set[str] = set()
+    page_url: str | None = archive_url
+    archive_page = 1
+
+    while page_url:
+        print(f"  Scanning archive page {archive_page}: {page_url}")
+        soup = fetch_page(session, page_url, timeout)
+        if soup is None:
+            break
+
+        for a in soup.find_all("a", href=True):
+            href = urljoin(page_url, a["href"])
+            if _COMIC_SLUG_RE.search(urlparse(href).path) and href not in seen:
+                seen.add(href)
+                comic_urls.append(href)
+
+        # Follow ←older pagination link
+        page_url = None
+        for a in soup.find_all("a"):
+            if "older" in a.get_text(strip=True).lower():
+                h = a.get("href", "").strip()
+                if h:
+                    page_url = urljoin(archive_url, h)
+                    break
+        archive_page += 1
+        time.sleep(0.5)  # be polite between archive pages
+
+    # Archive lists newest-first; reverse to get chronological order
+    comic_urls.reverse()
+    return comic_urls
+
+
 def download_all(
     start_url: str,
     output_dir: Path,
@@ -227,34 +272,21 @@ def download_all(
     resume: bool,
 ) -> list[Path]:
     """
-    Traverse the comic from start_url following next-page links.
+    Collect all comic page URLs from the archive, then download each image.
     Returns the list of downloaded file paths in reading order.
     """
     output_dir.mkdir(parents=True, exist_ok=True)
     session = make_session(timeout)
 
-    # Resolve start URL — /comic/ often redirects to the LATEST page,
-    # so we look for a "first page" nav link and jump there if found.
-    print(f"Resolving start URL: {start_url}")
-    landing_soup = fetch_page(session, start_url, timeout)
-    if landing_soup is None:
-        print("ERROR: Could not fetch start URL.", file=sys.stderr)
+    # The start URL is an archive listing — walk all archive pages first.
+    print(f"Collecting comic URLs from archive: {start_url}")
+    comic_urls = collect_comic_urls(session, start_url, timeout)
+    if not comic_urls:
+        print("ERROR: no comic URLs found in archive.", file=sys.stderr)
         return []
-    first_url = find_first_url(landing_soup, start_url)
-    if first_url and first_url != start_url:
-        print(f"Found 'first page' link → {first_url}")
-        current_url = first_url
-    else:
-        # May already be on the first page, or the theme has no "first" link.
-        # Use the canonical URL if available so we have a clean current URL.
-        canonical = landing_soup.find("link", rel="canonical")
-        current_url = canonical["href"] if (canonical and canonical.get("href")) else start_url
-        print(f"Starting at: {current_url}")
+    print(f"Found {len(comic_urls)} comics in archive.")
 
-    downloaded: list[Path] = []
-    page_index = 1
-
-    # If resuming, collect already-present files so we can insert them in order
+    # If resuming, find files already downloaded
     existing: dict[int, Path] = {}
     if resume:
         for p in sorted(output_dir.glob("*.*")):
@@ -262,7 +294,9 @@ def download_all(
             if m:
                 existing[int(m.group(1))] = p
 
-    while True:
+    downloaded: list[Path] = []
+
+    for page_index, current_url in enumerate(comic_urls, start=1):
         if limit and page_index > limit:
             print(f"Reached --limit {limit}; stopping.")
             break
@@ -275,26 +309,16 @@ def download_all(
             path = existing[page_index]
             print(f"  → already have {path.name}")
             downloaded.append(path)
-            # We still need to fetch the page to find the next URL
-            soup = fetch_page(session, current_url, timeout)
-            if soup is None:
-                break
-            next_url = find_next_url(soup, current_url)
-            if not next_url or next_url == current_url:
-                print("  End of comic (no next link found).")
-                break
-            current_url = next_url
-            page_index += 1
-            time.sleep(delay * 0.5)  # shorter delay when resuming
+            time.sleep(delay * 0.1)
             continue
 
         # --- Fetch page ---
         soup = fetch_page(session, current_url, timeout)
         if soup is None:
             print()
-            break
+            continue
 
-        # --- Find image ---
+        # --- Find and download image ---
         img_url = find_comic_image(soup)
         if not img_url:
             print("  WARNING: no image found; skipping page.")
@@ -311,14 +335,6 @@ def download_all(
             else:
                 print(f"  WARNING: failed to save {filename}")
 
-        # --- Find next page ---
-        next_url = find_next_url(soup, current_url)
-        if not next_url or next_url == current_url:
-            print("  End of comic (no next link found).")
-            break
-
-        current_url = next_url
-        page_index += 1
         time.sleep(delay)
 
     return downloaded
