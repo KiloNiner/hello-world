@@ -40,3 +40,57 @@ Client for the riddler.io API, made in PowerShell.
 This script will look through all adapters on the system enabled for IP
 traffic, checks if they use a predefined set of nameservers and updates their
 configuration if they do, based off one of several preferred orders.
+
+### convert_to_wallabag.py
+Converts a Matter history CSV export to the JSON format accepted by Wallabag's
+import feature. Reads `_matter_history.csv` from the same directory and writes
+`wallabag_import.json`. Preserves read/archived status, favourites, tags, and
+interaction dates.
+
+### download_mare.py
+Downloads the Mare Internum webcomic from marecomic.com. Crawls the archive
+page to collect every page slug in order, then visits each comic page to
+extract and download the image. Files are saved with a zero-padded sequence
+prefix so they sort correctly regardless of the original filenames. Requires
+only the Python standard library.
+
+Arguments:
+* --output DIR   Directory to save images (default: ./mare_internum/)
+* --delay SECS   Seconds to wait between requests (default: 1.0)
+* --dry-run      Print what would be downloaded without saving files
+* --start N      Resume from sequence number N (1-based)
+
+### meekcomic_downloader.py
+Downloads The Meek webcomic from meekcomic.com and compresses the pages into a
+zip archive. Requires `requests` and `beautifulsoup4` (declared inline via PEP
+723; run with `pipx run` for automatic dependency installation).
+
+Arguments:
+* --output DIR     Directory to save images (default: meekcomic_pages)
+* --zip FILE       Output zip filename (default: meekcomic.zip)
+* --limit N        Stop after N pages (useful for testing)
+* --delay SECS     Seconds between requests (default: 1.5)
+* --timeout SECS   Per-request timeout (default: 30)
+* --no-resume      Redownload all pages even if already present
+* --no-zip         Skip creating the zip archive
+
+### pqc-report.py
+Tests a list of domain names for post-quantum cryptography (PQC) key exchange
+support over TLS 1.3 and writes a markdown-formatted report. Uses Python's
+`ssl` module to verify TLS 1.3 connectivity and `openssl s_client` to probe
+each of the standardised PQC key exchange groups (ML-KEM hybrids and pure
+ML-KEM variants).
+
+Arguments:
+* output               Path to write the markdown report file
+* --domains DOMAIN...  One or more FQDNs to test
+* --domains-file FILE  Newline-separated file of FQDNs
+* --port PORT          TLS port to connect to (default: 443)
+* --timeout SECS       Per-connection timeout (default: 10)
+* --verbose            Print progress information to stderr
+
+### starfield.py
+Animated terminal star field. Stars fade in and out through colour gradients
+using Unicode round and pointed glyphs. Colour depth (truecolor / 256-colour /
+ANSI) is detected automatically; terminal resize is handled at runtime. Press
+Ctrl-C to exit. Requires Python 3.8+ and an ANSI-capable terminal.
