@@ -32,6 +32,11 @@ def convert():
 
     with open(INPUT_FILE, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
+        required_columns = {"URL", "Tags", "Read", "Favorited", "Title", "Last Interaction Date"}
+        if reader.fieldnames is not None:
+            missing = required_columns - set(reader.fieldnames)
+            if missing:
+                sys.exit(f"CSV is missing required column(s): {', '.join(sorted(missing))}")
         for row in reader:
             url = row["URL"].strip()
             if not url:

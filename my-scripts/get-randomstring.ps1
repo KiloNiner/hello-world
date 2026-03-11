@@ -21,6 +21,10 @@ param
 
 function main()
 {
+    if ($length -eq 0)
+    {
+        Write-Error -Message '-length must be greater than 0.' -ErrorAction Stop
+    }
     if ($verbose)
     {
         $VerbosePreference = 'Continue'
