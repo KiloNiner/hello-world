@@ -2,13 +2,13 @@
 
 * [1Password](https://agilebits.com/onepassword) because humans rarely do proper password management without help.
 * [Borderlands 2](http://www.borderlands2.com/) is my go to game when I need to shoot and loot.
-* [Focused](https://71squared.com/focused) for writing things.
+* ~~[Focused](https://71squared.com/focused) for writing things.~~ *(deprecated: transferred out of 71Squared, abandoned since ~2016)*
 * ~~[Atom](https://atom.io) for writing things and editing code.~~ *(deprecated: GitHub retired Atom in December 2022)*
 * ~~[Caffeine](http://lightheadsw.com/caffeine/) when I need my computer to stay awake for longer than me.~~ *(deprecated: abandoned by original developer)*
 * ~~[Cathode](http://www.secretgeometry.com/apps/cathode/), a very well done retro terminal emulator.~~ *(deprecated: app and website have gone offline)*
 * [ClipGrab](http://clipgrab.org/) for downloading videos.
 * [DaisyDisk](https://itunes.apple.com/dk/app/daisydisk/id411643860?mt=12) for figuring out why my home directory is suddenly a hundred gigs. Again.
-* [Delicious Library](https://itunes.apple.com/dk/app/delicious-library-3/id635124250?mt=12) for managing all my physical stuff. I'll start using it eventually, I swear.
+* ~~[Delicious Library](https://itunes.apple.com/dk/app/delicious-library-3/id635124250?mt=12) for managing all my physical stuff. I'll start using it eventually, I swear.~~ *(deprecated: shut down November 2024 after Amazon killed its product lookup API)*
 * [Gemini](https://itunes.apple.com/dk/app/gemini-the-duplicate-finder/id463541543?mt=12) for finding and killing duplicate files.
 * [GPG Suite](https://gpgtools.org/) for secure messaging.
 * ~~[ISESteroids](http://www.powertheshell.com/isesteroids/), the premier ISE extension for PowerShell.~~ *(deprecated: site defunct, development abandoned)*
