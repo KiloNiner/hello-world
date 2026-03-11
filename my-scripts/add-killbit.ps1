@@ -6,7 +6,7 @@ function New-KillBit
         [string]$CLSID = $(Throw 'You must define -CLSID')
     )
 	
-    if ($CLSID -match '{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}}') 
+    if ($CLSID -imatch '^\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}$') 
     {
         $StdRegProv = [wmiclass]"\\$computer\root\default:stdregprov"
         $HKLM = 2147483650

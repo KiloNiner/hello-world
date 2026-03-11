@@ -9,7 +9,7 @@ If wscript.arguments.count <> 2 Then
 	Wscript.Quit(1)
 End If
 strComputer = wscript.arguments(0)
-If (Wscript.Arguments(1) = "sr1" or Wscript.Arguments(1) = "sr2" or Wscript.Arguments(1) = "sr3" or Wscript.Arguments(1) = "sr4") Then
+If (lcase(Wscript.Arguments(1)) = "sr1" or lcase(Wscript.Arguments(1)) = "sr2" or lcase(Wscript.Arguments(1)) = "sr3" or lcase(Wscript.Arguments(1)) = "sr4") Then
 	sSrvRoom = ucase(Wscript.Arguments(1))
 Else
 	Wscript.Echo "Usage: cscript updatedns.vbs <target> <SR1|SR2|SR3|SR4>"

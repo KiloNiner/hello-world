@@ -165,6 +165,12 @@ def parse_args() -> argparse.Namespace:
     if not args.domains and not args.domains_file:
         parser.error("Provide at least one of --domains or --domains-file.")
 
+    if not 1 <= args.port <= 65535:
+        parser.error("--port must be between 1 and 65535.")
+
+    if args.timeout <= 0:
+        parser.error("--timeout must be a positive number.")
+
     return args
 
 

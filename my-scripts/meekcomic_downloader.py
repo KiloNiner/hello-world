@@ -386,7 +386,16 @@ def parse_args() -> argparse.Namespace:
                         help="Skip creating the zip archive")
     parser.add_argument("--debug-nav", action="store_true",
                         help="Dump all <a> tags from the first page and exit (for diagnosing nav issues)")
-    return parser.parse_args()
+    args = parser.parse_args()
+
+    if args.limit < 0:
+        parser.error("--limit must be >= 0")
+    if args.delay < 0:
+        parser.error("--delay must be >= 0")
+    if args.timeout <= 0:
+        parser.error("--timeout must be > 0")
+
+    return args
 
 
 def _debug_nav(start_url: str, timeout: int) -> None:

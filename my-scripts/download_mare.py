@@ -178,6 +178,11 @@ def main():
                     help="Start from this sequence number (1-based, for resuming)")
     args = ap.parse_args()
 
+    if args.delay < 0:
+        ap.error("--delay must be >= 0")
+    if args.start < 1:
+        ap.error("--start must be >= 1")
+
     out_dir = os.path.abspath(args.output)
     if not args.dry_run:
         os.makedirs(out_dir, exist_ok=True)

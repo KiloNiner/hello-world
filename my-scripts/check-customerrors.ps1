@@ -4,10 +4,14 @@
 # customerrors/@mode value to determine whether custom errors are shown in
 # place of detailed ASP.NET errors.
 
-function Get-CustomErrorsMode 
+function Get-CustomErrorsMode
 {
-    param ($filename = $(Throw 'no filename specified'))
-    [xml]$xml = Get-Content $filename
+    param ([string]$filename = $(Throw 'no filename specified'))
+    if (-not (Test-Path -LiteralPath $filename -PathType Leaf))
+    {
+        Throw "File not found: $filename"
+    }
+    [xml]$xml = Get-Content -LiteralPath $filename
     switch ($xml.configuration.'system.web'.customerrors.mode) {
         'on' 
         {
@@ -31,10 +35,14 @@ function Get-CustomErrorsMode
         }
     }
 }
-function Find-WebConfig 
+function Find-WebConfig
 {
-    param ($path = $(Throw 'No path specified'))
-    Get-ChildItem -Recurse -Filter 'web.config' $path|`
+    param ([string]$path = $(Throw 'No path specified'))
+    if (-not (Test-Path -LiteralPath $path -PathType Container))
+    {
+        Throw "Directory not found: $path"
+    }
+    Get-ChildItem -Recurse -Filter 'web.config' -LiteralPath $path|`
     ForEach-Object -Process {
         New-Object -TypeName psobject|
         Add-Member noteproperty fullname $_.fullname -PassThru|
