@@ -419,7 +419,7 @@ function renderUpgrades() {
     panel.appendChild(card);
   }
 
-  panel.querySelectorAll('.upgrade-btn:not(:disabled)').forEach(btn => {
+  panel.querySelectorAll('.upgrade-btn[data-id]').forEach(btn => {
     btn.addEventListener('click', () => buyUpgrade(btn.dataset.id));
   });
 }
@@ -453,7 +453,7 @@ function renderBuildings() {
     panel.appendChild(card);
   }
 
-  panel.querySelectorAll('.building-buy:not(:disabled)').forEach(btn => {
+  panel.querySelectorAll('.building-buy[data-id]').forEach(btn => {
     btn.addEventListener('click', () => buyBuilding(btn.dataset.id));
   });
 }
