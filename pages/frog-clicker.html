@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Frog Clicker</title>
+<style>
+  :root {
+    --green:   #4a9e4a;
+    --dkgreen: #2d6e2d;
+    --ltgreen: #7ecb7e;
+    --bg:      #0e1a0e;
+    --panel:   #162416;
+    --border:  #2a442a;
+    --text:    #c8e6c8;
+    --gold:    #f0c040;
+    --red:     #e05050;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    background: var(--panel);
+    border-bottom: 2px solid var(--border);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  header h1 { color: var(--ltgreen); font-size: 1.4rem; }
+
+  .stat { font-size: 0.85rem; }
+  .stat span { color: var(--gold); font-weight: bold; }
+
+  .main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── Left panel: frog ── */
+  .frog-panel {
+    flex: 0 0 320px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 20px;
+    border-right: 2px solid var(--border);
+    gap: 16px;
+  }
+
+  #frog-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 120px;
+    line-height: 1;
+    transition: transform 0.08s;
+    filter: drop-shadow(0 0 18px #4a9e4a88);
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #frog-btn:active { transform: scale(0.88); }
+  #frog-btn.bounce { animation: bounce 0.15s ease-out; }
+  @keyframes bounce {
+    0%   { transform: scale(0.88); }
+    60%  { transform: scale(1.10); }
+    100% { transform: scale(1.00); }
+  }
+
+  .frog-label { font-size: 0.8rem; color: #6a9a6a; text-align: center; }
+
+  .multiplier-bar {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    width: 100%;
+    font-size: 0.82rem;
+  }
+  .multiplier-bar h3 { color: var(--ltgreen); margin-bottom: 6px; font-size: 0.85rem; }
+  .mult-row { display: flex; justify-content: space-between; padding: 2px 0; }
+  .mult-row .label { color: #8aaa8a; }
+  .mult-row .val   { color: var(--gold); }
+
+  /* ── Middle panel: upgrades ── */
+  .upgrade-panel {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .panel-title {
+    color: var(--ltgreen);
+    font-size: 1rem;
+    font-weight: bold;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+
+  .upgrade-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    transition: border-color 0.2s, opacity 0.2s;
+  }
+  .upgrade-card.affordable  { border-color: var(--green); }
+  .upgrade-card.maxed       { opacity: 0.5; }
+
+  .upgrade-info .name  { font-weight: bold; font-size: 0.9rem; }
+  .upgrade-info .desc  { font-size: 0.75rem; color: #7a9a7a; margin-top: 2px; }
+  .upgrade-info .level { font-size: 0.75rem; color: var(--gold); margin-top: 2px; }
+
+  .upgrade-btn {
+    background: var(--dkgreen);
+    border: 1px solid var(--green);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+  .upgrade-btn:hover:not(:disabled) { background: var(--green); }
+  .upgrade-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── Right panel: buildings ── */
+  .building-panel {
+    flex: 0 0 280px;
+    overflow-y: auto;
+    padding: 16px;
+    border-left: 2px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .building-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: border-color 0.2s;
+  }
+  .building-card.affordable { border-color: var(--green); }
+
+  .building-icon { font-size: 1.8rem; flex-shrink: 0; }
+
+  .building-info { flex: 1; min-width: 0; }
+  .building-info .name  { font-size: 0.85rem; font-weight: bold; }
+  .building-info .owned { font-size: 0.75rem; color: var(--gold); }
+  .building-info .fps   { font-size: 0.72rem; color: #7a9a7a; }
+
+  .building-buy {
+    background: var(--dkgreen);
+    border: 1px solid var(--green);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 0.78rem;
+    white-space: nowrap;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+  .building-buy:hover:not(:disabled) { background: var(--green); }
+  .building-buy:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── Click floats ── */
+  .float {
+    position: fixed;
+    font-size: 1rem;
+    color: var(--ltgreen);
+    font-weight: bold;
+    pointer-events: none;
+    animation: floatUp 1s ease-out forwards;
+    z-index: 999;
+  }
+  @keyframes floatUp {
+    0%   { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-70px); }
+  }
+
+  /* ── Building fly particles ── */
+  .fly-particle {
+    position: fixed;
+    font-size: 1rem;
+    pointer-events: none;
+    z-index: 998;
+    animation: flyAway 1.2s ease-out forwards;
+  }
+  @keyframes flyAway {
+    0%   { opacity: 1;   transform: translate(0, 0) scale(1); }
+    100% { opacity: 0;   transform: translate(var(--drift, 0px), -70px) scale(0.5); }
+  }
+
+  /* ── Milestones ── */
+  #milestone-toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--dkgreen);
+    border: 2px solid var(--ltgreen);
+    border-radius: 10px;
+    padding: 12px 24px;
+    font-size: 0.9rem;
+    color: var(--gold);
+    opacity: 0;
+    transition: opacity 0.4s;
+    z-index: 1000;
+    text-align: center;
+    pointer-events: none;
+  }
+  #milestone-toast.show { opacity: 1; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🐸 Frog Clicker</h1>
+  <div class="stat">Flies: <span id="hdr-flies">0</span></div>
+  <div class="stat">Total caught: <span id="hdr-total">0</span></div>
+  <div class="stat">Per second: <span id="hdr-fps">0</span></div>
+  <div class="stat">Per click: <span id="hdr-fpc">1</span></div>
+</header>
+
+<div class="main">
+
+  <!-- Frog -->
+  <div class="frog-panel">
+    <button id="frog-btn" title="Click the frog!">🐸</button>
+    <div class="frog-label">Click to catch flies!</div>
+
+    <div class="multiplier-bar">
+      <h3>🔢 Multipliers</h3>
+      <div class="mult-row"><span class="label">Click base</span><span class="val" id="m-base">1</span></div>
+      <div class="mult-row"><span class="label">Click upgrades</span><span class="val" id="m-click-bonus">+0</span></div>
+      <div class="mult-row"><span class="label">Global ×</span><span class="val" id="m-global">×1.00</span></div>
+      <div class="mult-row"><span class="label">Flies/sec</span><span class="val" id="m-fps">0.0</span></div>
+    </div>
+  </div>
+
+  <!-- Upgrades -->
+  <div class="upgrade-panel" id="upgrade-panel">
+    <div class="panel-title">⬆️ Upgrades</div>
+  </div>
+
+  <!-- Buildings -->
+  <div class="building-panel" id="building-panel">
+    <div class="panel-title">🏗️ Buildings</div>
+  </div>
+
+</div>
+
+<div id="milestone-toast"></div>
+
+<script>
+// ─── State ────────────────────────────────────────────────────────────────────
+const state = {
+  flies: 0,
+  totalFlies: 0,
+  clickBonus: 0,      // flat bonus per click from upgrades
+  globalMult: 1,      // multiplicative global multiplier
+  buildings: {},      // id -> count
+  upgrades: {},       // id -> level purchased
+};
+
+// ─── Buildings ────────────────────────────────────────────────────────────────
+const BUILDINGS = [
+  { id: 'pond',      icon: '🌿', name: 'Lily Pad',      baseCost: 10,   baseFps: 0.1,  desc: 'A resting spot. Flies come to you.' },
+  { id: 'log',       icon: '🪵', name: 'Mossy Log',     baseCost: 80,   baseFps: 0.5,  desc: 'Insects love rotting wood.' },
+  { id: 'swamp',     icon: '🌾', name: 'Swamp Patch',   baseCost: 500,  baseFps: 3,    desc: 'A buzzing hotspot.' },
+  { id: 'pond2',     icon: '💧', name: 'Frog Pond',     baseCost: 3000, baseFps: 15,   desc: 'A full pond ecosystem.' },
+  { id: 'rainforest',icon: '🌴', name: 'Rainforest',    baseCost: 20000,baseFps: 80,   desc: 'Infinite insects in the canopy.' },
+  { id: 'bog',       icon: '🌫️', name: 'Haunted Bog',   baseCost: 150000,baseFps:400,  desc: 'Otherworldly fly quantities.' },
+  { id: 'dimension', icon: '🌀', name: 'Fly Dimension', baseCost:1e6,   baseFps: 2000, desc: 'Flies from another realm.' },
+];
+
+// ─── Upgrades ─────────────────────────────────────────────────────────────────
+// type: 'click' (flat per-click), 'global' (multiplier), 'fps' (fps mult)
+const UPGRADES = [
+  // Click upgrades
+  { id: 'sticky_tongue', name: 'Stickier Tongue',   type: 'click',  value: 1,    maxLevel: 10, baseCost: 15,    costScale: 3,    icon: '👅', desc: '+1 fly per click' },
+  { id: 'faster_tongue', name: 'Lightning Tongue',  type: 'click',  value: 5,    maxLevel: 8,  baseCost: 500,   costScale: 4,    icon: '⚡', desc: '+5 flies per click' },
+  { id: 'mega_tongue',   name: 'Mega Tongue',        type: 'click',  value: 20,   maxLevel: 6,  baseCost: 10000, costScale: 5,    icon: '💪', desc: '+20 flies per click' },
+  { id: 'hyper_tongue',  name: 'Hyper Tongue',       type: 'click',  value: 100,  maxLevel: 5,  baseCost: 500000,costScale: 6,    icon: '🚀', desc: '+100 flies per click' },
+  // Global multipliers
+  { id: 'ribbit_song',   name: 'Ribbit Song',        type: 'global', value: 1.5,  maxLevel: 5,  baseCost: 200,   costScale: 8,    icon: '🎵', desc: '×1.5 all production' },
+  { id: 'frog_choir',    name: 'Frog Choir',         type: 'global', value: 2,    maxLevel: 4,  baseCost: 25000, costScale: 10,   icon: '🎶', desc: '×2 all production' },
+  { id: 'ancient_croak', name: 'Ancient Croak',      type: 'global', value: 3,    maxLevel: 3,  baseCost: 2e6,   costScale: 15,   icon: '📯', desc: '×3 all production' },
+  // FPS multipliers (buildings only)
+  { id: 'bug_magnet',    name: 'Bug Magnet',         type: 'fps',    value: 1.5,  maxLevel: 5,  baseCost: 1000,  costScale: 8,    icon: '🧲', desc: '×1.5 flies/sec' },
+  { id: 'swarm_pheromone',name:'Swarm Pheromone',    type: 'fps',    value: 2,    maxLevel: 4,  baseCost: 50000, costScale: 10,   icon: '🌸', desc: '×2 flies/sec' },
+];
+
+// ─── Milestones ───────────────────────────────────────────────────────────────
+const MILESTONES = [
+  { at: 100,    msg: '🐸 100 flies! The frog is warming up.' },
+  { at: 1000,   msg: '🌿 1,000 flies! A true swamp predator.' },
+  { at: 10000,  msg: '💧 10,000 flies! The pond is yours.' },
+  { at: 100000, msg: '🌴 100k flies! Rainforest royalty.' },
+  { at: 1e6,    msg: '🌀 1 million flies! Transcendent frog.' },
+  { at: 1e8,    msg: '✨ 100 million! Legendary amphibian.' },
+  { at: 1e10,   msg: '🌌 10 billion! Cosmic ribbit.' },
+];
+let nextMilestone = 0;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function fmt(n) {
+  if (n >= 1e12) return (n / 1e12).toFixed(2) + 'T';
+  if (n >= 1e9)  return (n / 1e9).toFixed(2)  + 'B';
+  if (n >= 1e6)  return (n / 1e6).toFixed(2)  + 'M';
+  if (n >= 1e3)  return (n / 1e3).toFixed(1)  + 'k';
+  return Math.floor(n).toString();
+}
+
+function buildingCost(b, owned) {
+  return Math.ceil(b.baseCost * Math.pow(1.15, owned));
+}
+
+function upgradeCost(u, level) {
+  return Math.ceil(u.baseCost * Math.pow(u.costScale, level));
+}
+
+function computeFps() {
+  let fps = 0;
+  for (const b of BUILDINGS) {
+    fps += b.baseFps * (state.buildings[b.id] || 0);
+  }
+  // fps upgrades
+  let fpsMult = 1;
+  for (const u of UPGRADES.filter(u => u.type === 'fps')) {
+    const lvl = state.upgrades[u.id] || 0;
+    fpsMult *= Math.pow(u.value, lvl);
+  }
+  fps *= fpsMult * state.globalMult;
+  return fps;
+}
+
+function computeClickValue() {
+  return (1 + state.clickBonus) * state.globalMult;
+}
+
+function recomputeGlobalMult() {
+  let m = 1;
+  for (const u of UPGRADES.filter(u => u.type === 'global')) {
+    const lvl = state.upgrades[u.id] || 0;
+    m *= Math.pow(u.value, lvl);
+  }
+  state.globalMult = m;
+}
+
+function recomputeClickBonus() {
+  let bonus = 0;
+  for (const u of UPGRADES.filter(u => u.type === 'click')) {
+    bonus += u.value * (state.upgrades[u.id] || 0);
+  }
+  state.clickBonus = bonus;
+}
+
+// ─── Rendering ────────────────────────────────────────────────────────────────
+function renderHeader() {
+  document.getElementById('hdr-flies').textContent  = fmt(state.flies);
+  document.getElementById('hdr-total').textContent  = fmt(state.totalFlies);
+  document.getElementById('hdr-fps').textContent    = fmt(computeFps()) + '/s';
+  document.getElementById('hdr-fpc').textContent    = fmt(computeClickValue());
+}
+
+function renderMultiplierBar() {
+  document.getElementById('m-base').textContent        = '1';
+  document.getElementById('m-click-bonus').textContent = '+' + fmt(state.clickBonus);
+  document.getElementById('m-global').textContent      = '×' + state.globalMult.toFixed(2);
+  document.getElementById('m-fps').textContent         = fmt(computeFps()) + '/s';
+}
+
+function renderUpgrades() {
+  const panel = document.getElementById('upgrade-panel');
+  // Keep title node, replace cards
+  const title = panel.querySelector('.panel-title');
+  panel.innerHTML = '';
+  panel.appendChild(title);
+
+  for (const u of UPGRADES) {
+    const lvl  = state.upgrades[u.id] || 0;
+    const cost = upgradeCost(u, lvl);
+    const maxed = lvl >= u.maxLevel;
+    const can   = !maxed && state.flies >= cost;
+
+    const card = document.createElement('div');
+    card.className = 'upgrade-card' + (maxed ? ' maxed' : can ? ' affordable' : '');
+
+    card.innerHTML = `
+      <div class="upgrade-info">
+        <div class="name">${u.icon} ${u.name}</div>
+        <div class="desc">${u.desc}</div>
+        <div class="level">Level ${lvl}/${u.maxLevel}${maxed ? ' — MAXED' : ''}</div>
+      </div>
+      <button class="upgrade-btn" ${maxed || !can ? 'disabled' : ''} data-id="${u.id}">
+        ${maxed ? 'Maxed' : '🪰 ' + fmt(cost)}
+      </button>`;
+    panel.appendChild(card);
+  }
+
+  panel.querySelectorAll('.upgrade-btn[data-id]').forEach(btn => {
+    btn.addEventListener('click', () => buyUpgrade(btn.dataset.id));
+  });
+}
+
+function renderBuildings() {
+  const panel = document.getElementById('building-panel');
+  const title = panel.querySelector('.panel-title');
+  panel.innerHTML = '';
+  panel.appendChild(title);
+
+  for (const b of BUILDINGS) {
+    const owned = state.buildings[b.id] || 0;
+    const cost  = buildingCost(b, owned);
+    const can   = state.flies >= cost;
+
+    const card = document.createElement('div');
+    card.className = 'building-card' + (can ? ' affordable' : '');
+
+    const thisFps = (b.baseFps * owned * computeFpsMult() * state.globalMult).toFixed(1);
+
+    card.innerHTML = `
+      <div class="building-icon">${b.icon}</div>
+      <div class="building-info">
+        <div class="name">${b.name}</div>
+        <div class="owned">Owned: ${owned}</div>
+        <div class="fps">${thisFps} flies/sec</div>
+      </div>
+      <button class="building-buy" ${can ? '' : 'disabled'} data-id="${b.id}">
+        🪰 ${fmt(cost)}
+      </button>`;
+    panel.appendChild(card);
+  }
+
+  panel.querySelectorAll('.building-buy[data-id]').forEach(btn => {
+    btn.addEventListener('click', () => buyBuilding(btn.dataset.id));
+  });
+}
+
+function computeFpsMult() {
+  let m = 1;
+  for (const u of UPGRADES.filter(u => u.type === 'fps')) {
+    m *= Math.pow(u.value, state.upgrades[u.id] || 0);
+  }
+  return m;
+}
+
+function render() {
+  renderHeader();
+  renderMultiplierBar();
+  renderUpgrades();
+  renderBuildings();
+}
+
+// ─── Actions ──────────────────────────────────────────────────────────────────
+function earn(amount) {
+  state.flies += amount;
+  state.totalFlies += amount;
+  checkMilestones();
+}
+
+function buyUpgrade(id) {
+  const u    = UPGRADES.find(u => u.id === id);
+  const lvl  = state.upgrades[id] || 0;
+  if (lvl >= u.maxLevel) return;
+  const cost = upgradeCost(u, lvl);
+  if (state.flies < cost) return;
+  state.flies -= cost;
+  state.upgrades[id] = lvl + 1;
+  recomputeGlobalMult();
+  recomputeClickBonus();
+  render();
+}
+
+function buyBuilding(id) {
+  const b    = BUILDINGS.find(b => b.id === id);
+  const owned = state.buildings[id] || 0;
+  const cost  = buildingCost(b, owned);
+  if (state.flies < cost) return;
+  state.flies -= cost;
+  state.buildings[id] = owned + 1;
+  render();
+}
+
+// ─── Click handler ────────────────────────────────────────────────────────────
+const frogBtn = document.getElementById('frog-btn');
+frogBtn.addEventListener('click', (e) => {
+  const val = computeClickValue();
+  earn(val);
+
+  // Bounce animation
+  frogBtn.classList.remove('bounce');
+  void frogBtn.offsetWidth;
+  frogBtn.classList.add('bounce');
+
+  // Floating number
+  const float = document.createElement('div');
+  float.className = 'float';
+  float.textContent = '+' + fmt(val);
+  float.style.left = (e.clientX - 15) + 'px';
+  float.style.top  = (e.clientY - 10) + 'px';
+  document.body.appendChild(float);
+  setTimeout(() => float.remove(), 1000);
+
+  renderHeader();
+  renderMultiplierBar();
+  // Affordability check without full re-render for performance
+  updateAffordability();
+});
+
+function updateAffordability() {
+  document.querySelectorAll('.upgrade-btn[data-id]').forEach(btn => {
+    const u    = UPGRADES.find(u => u.id === btn.dataset.id);
+    const lvl  = state.upgrades[btn.dataset.id] || 0;
+    const cost = upgradeCost(u, lvl);
+    const maxed = lvl >= u.maxLevel;
+    btn.disabled = maxed || state.flies < cost;
+    btn.closest('.upgrade-card').classList.toggle('affordable', !maxed && state.flies >= cost);
+  });
+  document.querySelectorAll('.building-buy[data-id]').forEach(btn => {
+    const b    = BUILDINGS.find(b => b.id === btn.dataset.id);
+    const cost = buildingCost(b, state.buildings[b.id] || 0);
+    btn.disabled = state.flies < cost;
+    btn.closest('.building-card').classList.toggle('affordable', state.flies >= cost);
+  });
+}
+
+// ─── Milestones ───────────────────────────────────────────────────────────────
+function checkMilestones() {
+  while (nextMilestone < MILESTONES.length &&
+         state.totalFlies >= MILESTONES[nextMilestone].at) {
+    showToast(MILESTONES[nextMilestone].msg);
+    nextMilestone++;
+  }
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('milestone-toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => toast.classList.remove('show'), 3500);
+}
+
+// ─── Fly particles ────────────────────────────────────────────────────────────
+const flyDebt = {};          // building id -> fractional flies owed
+const MAX_FLY_PARTICLES = 60;
+
+function spawnFlyFromBuilding(id) {
+  if (document.querySelectorAll('.fly-particle').length >= MAX_FLY_PARTICLES) return;
+  const btn = document.querySelector(`.building-buy[data-id="${id}"]`);
+  if (!btn) return;
+  const rect = btn.getBoundingClientRect();
+  const el = document.createElement('div');
+  el.className = 'fly-particle';
+  el.textContent = '🪰';
+  el.style.left = (rect.left + rect.width  / 2 - 8) + 'px';
+  el.style.top  = (rect.top  + rect.height / 2 - 8) + 'px';
+  el.style.setProperty('--drift', (Math.random() * 80 - 40) + 'px');
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1200);
+}
+
+// ─── Game loop ────────────────────────────────────────────────────────────────
+let lastTick = performance.now();
+
+function tick(now) {
+  const dt = Math.min((now - lastTick) / 1000, 1); // clamp to 1s to avoid tab-focus bursts
+  lastTick = now;
+  const fps = computeFps();
+  if (fps > 0) {
+    earn(fps * dt);
+    renderHeader();
+    renderMultiplierBar();
+    updateAffordability();
+  }
+
+  // Spawn fly particles from buildings proportional to their fps
+  const fpsMult = computeFpsMult();
+  for (const b of BUILDINGS) {
+    const owned = state.buildings[b.id] || 0;
+    if (owned === 0) continue;
+    const bFps = b.baseFps * owned * fpsMult * state.globalMult;
+    flyDebt[b.id] = (flyDebt[b.id] || 0) + bFps * dt;
+    const toSpawn = Math.min(Math.floor(flyDebt[b.id]), 5); // max 5 per building per frame
+    flyDebt[b.id] -= toSpawn;
+    for (let i = 0; i < toSpawn; i++) spawnFlyFromBuilding(b.id);
+  }
+
+  requestAnimationFrame(tick);
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+render();
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
