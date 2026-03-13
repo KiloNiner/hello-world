@@ -3,21 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Touch Grass</title>
+<title>Frog Clicker</title>
 <style>
   :root {
-    --bg:       #0d1a08;
-    --panel:    #141f0e;
-    --panel2:   #1a2a12;
-    --border:   #2c4420;
-    --text:     #d0e8c0;
-    --muted:    #7a9a68;
-    --green:    #5ab84a;
-    --ltgreen:  #88d468;
-    --gold:     #c8a030;
-    --brown:    #7a5530;
-    --sky:      #3a7aaa;
-    --tab-bg:   #0f1a09;
+    --green:   #4a9e4a;
+    --dkgreen: #2d6e2d;
+    --ltgreen: #7ecb7e;
+    --bg:      #0e1a0e;
+    --panel:   #162416;
+    --border:  #2a442a;
+    --text:    #c8e6c8;
+    --gold:    #f0c040;
+    --red:     #e05050;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -25,379 +22,263 @@
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    height: 100vh;
-    display: grid;
-    grid-template-rows: auto 1fr;
-    overflow: hidden;
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
 
-  /* ── Header ── */
   header {
     background: var(--panel);
     border-bottom: 2px solid var(--border);
-    padding: 8px 20px;
+    padding: 10px 20px;
     display: flex;
     align-items: center;
-    gap: 24px;
-    flex-wrap: wrap;
-  }
-
-  .hdr-title {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: var(--ltgreen);
-    white-space: nowrap;
-  }
-
-  .hdr-stats {
-    display: flex;
     gap: 20px;
     flex-wrap: wrap;
   }
 
-  .hdr-stat { font-size: 0.8rem; }
-  .hdr-stat .val { color: var(--gold); font-weight: bold; }
-  .hdr-stat .lbl { color: var(--muted); }
+  header h1 { color: var(--ltgreen); font-size: 1.4rem; }
 
-  /* ── Main layout: left touch area + right tabbed panel ── */
+  .stat { font-size: 0.85rem; }
+  .stat span { color: var(--gold); font-weight: bold; }
+
   .main {
-    display: grid;
-    grid-template-columns: 300px 1fr;
+    display: flex;
+    flex: 1;
     overflow: hidden;
   }
 
-  /* ── Left: touch panel ── */
-  .touch-panel {
+  /* ── Left panel: frog ── */
+  .frog-panel {
+    flex: 0 0 320px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 24px 16px;
+    padding: 30px 20px;
     border-right: 2px solid var(--border);
-    gap: 14px;
-    overflow-y: auto;
+    gap: 16px;
   }
 
-  .grass-scene {
-    position: relative;
-    width: 180px;
-    height: 180px;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-  }
-
-  .grass-ground {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 50px;
-    background: linear-gradient(to bottom, #3a6e28, #2a4e1a);
-    border-radius: 0 0 12px 12px;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding-top: 4px;
-    font-size: 1.4rem;
-    letter-spacing: -4px;
-    overflow: hidden;
-  }
-
-  #touch-btn {
-    position: absolute;
-    bottom: 42px;
+  #frog-btn {
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 90px;
+    font-size: 120px;
     line-height: 1;
+    transition: transform 0.08s;
+    filter: drop-shadow(0 0 18px #4a9e4a88);
     user-select: none;
     -webkit-tap-highlight-color: transparent;
-    filter: drop-shadow(0 4px 12px #0008);
-    transition: transform 0.08s;
-    z-index: 1;
   }
-  #touch-btn:active { transform: translateY(6px) scale(0.95); }
-  #touch-btn.squish { animation: squish 0.18s ease-out; }
-  @keyframes squish {
-    0%   { transform: translateY(6px) scale(0.95); }
-    55%  { transform: translateY(-8px) scale(1.06); }
-    100% { transform: translateY(0)   scale(1.00); }
+  #frog-btn:active { transform: scale(0.88); }
+  #frog-btn.bounce { animation: bounce 0.15s ease-out; }
+  @keyframes bounce {
+    0%   { transform: scale(0.88); }
+    60%  { transform: scale(1.10); }
+    100% { transform: scale(1.00); }
   }
 
-  .touch-hint {
-    font-size: 0.75rem;
-    color: var(--muted);
-    text-align: center;
-  }
+  .frog-label { font-size: 0.8rem; color: #6a9a6a; text-align: center; }
 
-  /* ── Stats box ── */
-  .stats-box {
-    width: 100%;
-    background: var(--panel2);
+  .multiplier-bar {
+    background: var(--panel);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 14px;
+    border-radius: 8px;
+    padding: 10px 14px;
+    width: 100%;
+    font-size: 0.82rem;
+  }
+  .multiplier-bar h3 { color: var(--ltgreen); margin-bottom: 6px; font-size: 0.85rem; }
+  .mult-row { display: flex; justify-content: space-between; padding: 2px 0; }
+  .mult-row .label { color: #8aaa8a; }
+  .mult-row .val   { color: var(--gold); }
+
+  /* ── Middle panel: upgrades ── */
+  .upgrade-panel {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 10px;
   }
 
-  .stats-box h3 {
-    font-size: 0.8rem;
+  .panel-title {
     color: var(--ltgreen);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    font-size: 1rem;
+    font-weight: bold;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
     margin-bottom: 4px;
   }
 
-  .stat-row {
+  .upgrade-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
     display: flex;
     justify-content: space-between;
-    font-size: 0.8rem;
+    align-items: center;
+    gap: 10px;
+    transition: border-color 0.2s, opacity 0.2s;
   }
-  .stat-row .lbl { color: var(--muted); }
-  .stat-row .val { color: var(--gold); }
+  .upgrade-card.affordable  { border-color: var(--green); }
+  .upgrade-card.maxed       { opacity: 0.5; }
 
-  /* ── Right: tabbed panel ── */
-  .right-panel {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
+  .upgrade-info .name  { font-weight: bold; font-size: 0.9rem; }
+  .upgrade-info .desc  { font-size: 0.75rem; color: #7a9a7a; margin-top: 2px; }
+  .upgrade-info .level { font-size: 0.75rem; color: var(--gold); margin-top: 2px; }
 
-  .tab-bar {
-    display: flex;
-    background: var(--tab-bg);
-    border-bottom: 2px solid var(--border);
+  .upgrade-btn {
+    background: var(--dkgreen);
+    border: 1px solid var(--green);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    transition: background 0.15s;
     flex-shrink: 0;
   }
+  .upgrade-btn:hover:not(:disabled) { background: var(--green); }
+  .upgrade-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  .tab-btn {
-    flex: 1;
-    padding: 10px;
-    background: none;
-    border: none;
-    border-bottom: 3px solid transparent;
-    color: var(--muted);
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: bold;
-    transition: color 0.15s, border-color 0.15s;
-  }
-  .tab-btn:hover { color: var(--text); }
-  .tab-btn.active {
-    color: var(--ltgreen);
-    border-bottom-color: var(--ltgreen);
-  }
-
-  .tab-content {
-    flex: 1;
+  /* ── Right panel: buildings ── */
+  .building-panel {
+    flex: 0 0 280px;
     overflow-y: auto;
-    padding: 14px;
-    display: none;
+    padding: 16px;
+    border-left: 2px solid var(--border);
+    display: flex;
     flex-direction: column;
     gap: 8px;
   }
-  .tab-content.active { display: flex; }
 
-  /* ── Location cards ── */
-  .location-card {
-    background: var(--panel2);
+  .building-card {
+    background: var(--panel);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 14px;
-    display: grid;
-    grid-template-columns: 2.2rem 1fr auto;
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
     align-items: center;
     gap: 10px;
     transition: border-color 0.2s;
   }
-  .location-card.affordable { border-color: var(--green); }
+  .building-card.affordable { border-color: var(--green); }
 
-  .loc-icon { font-size: 1.6rem; text-align: center; }
+  .building-icon { font-size: 1.8rem; flex-shrink: 0; }
 
-  .loc-info .name  { font-size: 0.88rem; font-weight: bold; }
-  .loc-info .desc  { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
-  .loc-info .owned { font-size: 0.72rem; color: var(--gold); margin-top: 2px; }
-  .loc-info .tps   { font-size: 0.7rem;  color: #5a8a4a; }
+  .building-info { flex: 1; min-width: 0; }
+  .building-info .name  { font-size: 0.85rem; font-weight: bold; }
+  .building-info .owned { font-size: 0.75rem; color: var(--gold); }
+  .building-info .fps   { font-size: 0.72rem; color: #7a9a7a; }
 
-  .loc-buy {
-    background: #1e3a14;
+  .building-buy {
+    background: var(--dkgreen);
     border: 1px solid var(--green);
     color: var(--text);
-    border-radius: 7px;
-    padding: 6px 11px;
+    border-radius: 6px;
+    padding: 5px 10px;
     cursor: pointer;
     font-size: 0.78rem;
     white-space: nowrap;
     transition: background 0.15s;
     flex-shrink: 0;
-    text-align: center;
   }
-  .loc-buy:hover:not(:disabled) { background: var(--green); color: #0a140a; }
-  .loc-buy:disabled { opacity: 0.38; cursor: not-allowed; }
+  .building-buy:hover:not(:disabled) { background: var(--green); }
+  .building-buy:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  /* ── Skill cards ── */
-  .skills-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-
-  .skill-card {
-    background: var(--panel2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    transition: border-color 0.2s, opacity 0.2s;
-  }
-  .skill-card.affordable { border-color: var(--green); }
-  .skill-card.maxed      { opacity: 0.45; }
-
-  .skill-top {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .skill-icon { font-size: 1.3rem; }
-  .skill-name { font-size: 0.83rem; font-weight: bold; line-height: 1.2; }
-
-  .skill-desc  { font-size: 0.7rem; color: var(--muted); }
-  .skill-level { font-size: 0.7rem; color: var(--gold); }
-
-  .skill-pip-row {
-    display: flex;
-    gap: 3px;
-    flex-wrap: wrap;
-  }
-  .pip {
-    width: 10px; height: 10px;
-    border-radius: 2px;
-    background: var(--border);
-  }
-  .pip.filled { background: var(--ltgreen); }
-
-  .skill-btn {
-    background: #1e3a14;
-    border: 1px solid var(--green);
-    color: var(--text);
-    border-radius: 6px;
-    padding: 5px 8px;
-    cursor: pointer;
-    font-size: 0.75rem;
-    transition: background 0.15s;
-    white-space: nowrap;
-    align-self: flex-start;
-  }
-  .skill-btn:hover:not(:disabled) { background: var(--green); color: #0a140a; }
-  .skill-btn:disabled { opacity: 0.38; cursor: not-allowed; }
-
-  /* ── Floating touch labels ── */
+  /* ── Click floats ── */
   .float {
     position: fixed;
-    font-size: 0.95rem;
+    font-size: 1rem;
     color: var(--ltgreen);
     font-weight: bold;
     pointer-events: none;
-    animation: floatUp 0.9s ease-out forwards;
+    animation: floatUp 1s ease-out forwards;
     z-index: 999;
-    white-space: nowrap;
   }
   @keyframes floatUp {
-    0%   { opacity: 1; transform: translateY(0) scale(1); }
-    100% { opacity: 0; transform: translateY(-60px) scale(0.8); }
+    0%   { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-70px); }
   }
 
-  /* ── Grass blade particles ── */
-  .grass-particle {
+  /* ── Building fly particles ── */
+  .fly-particle {
     position: fixed;
-    font-size: 0.95rem;
+    font-size: 1rem;
     pointer-events: none;
     z-index: 998;
-    animation: bladeAway 1.3s ease-out forwards;
+    animation: flyAway 1.2s ease-out forwards;
   }
-  @keyframes bladeAway {
-    0%   { opacity: 0.9; transform: translate(0, 0) rotate(0deg) scale(1); }
-    100% { opacity: 0;   transform: translate(var(--drift, 0px), -65px) rotate(var(--spin, 20deg)) scale(0.5); }
+  @keyframes flyAway {
+    0%   { opacity: 1;   transform: translate(0, 0) scale(1); }
+    100% { opacity: 0;   transform: translate(var(--drift, 0px), -70px) scale(0.5); }
   }
 
-  /* ── Milestone toast ── */
+  /* ── Milestones ── */
   #milestone-toast {
     position: fixed;
-    bottom: 24px;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background: var(--panel2);
+    background: var(--dkgreen);
     border: 2px solid var(--ltgreen);
-    border-radius: 12px;
-    padding: 12px 28px;
-    font-size: 0.88rem;
+    border-radius: 10px;
+    padding: 12px 24px;
+    font-size: 0.9rem;
     color: var(--gold);
     opacity: 0;
-    transition: opacity 0.35s;
+    transition: opacity 0.4s;
     z-index: 1000;
     text-align: center;
     pointer-events: none;
-    box-shadow: 0 4px 24px #00000080;
   }
   #milestone-toast.show { opacity: 1; }
 
   /* scrollbar */
-  ::-webkit-scrollbar { width: 5px; }
-  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="hdr-title">🌿 Touch Grass</div>
-  <div class="hdr-stats">
-    <div class="hdr-stat"><span class="val" id="hdr-grass">0</span> <span class="lbl">grass</span></div>
-    <div class="hdr-stat"><span class="val" id="hdr-total">0</span> <span class="lbl">total touched</span></div>
-    <div class="hdr-stat"><span class="val" id="hdr-tps">0</span> <span class="lbl">/sec</span></div>
-    <div class="hdr-stat"><span class="val" id="hdr-tpc">1</span> <span class="lbl">/touch</span></div>
-  </div>
+  <h1>🐸 Frog Clicker</h1>
+  <div class="stat">Flies: <span id="hdr-flies">0</span></div>
+  <div class="stat">Total caught: <span id="hdr-total">0</span></div>
+  <div class="stat">Per second: <span id="hdr-fps">0</span></div>
+  <div class="stat">Per click: <span id="hdr-fpc">1</span></div>
 </header>
 
 <div class="main">
 
-  <!-- Left: touch area -->
-  <div class="touch-panel">
+  <!-- Frog -->
+  <div class="frog-panel">
+    <button id="frog-btn" title="Click the frog!">🐸</button>
+    <div class="frog-label">Click to catch flies!</div>
 
-    <div class="grass-scene">
-      <div class="grass-ground">🌿🌱🌾🌱🌿🌱🌾</div>
-      <button id="touch-btn" title="Touch the grass!">🖐️</button>
+    <div class="multiplier-bar">
+      <h3>🔢 Multipliers</h3>
+      <div class="mult-row"><span class="label">Click base</span><span class="val" id="m-base">1</span></div>
+      <div class="mult-row"><span class="label">Click upgrades</span><span class="val" id="m-click-bonus">+0</span></div>
+      <div class="mult-row"><span class="label">Global ×</span><span class="val" id="m-global">×1.00</span></div>
+      <div class="mult-row"><span class="label">Flies/sec</span><span class="val" id="m-fps">0.0</span></div>
     </div>
-
-    <div class="touch-hint">touch the grass</div>
-
-    <div class="stats-box">
-      <h3>📊 Stats</h3>
-      <div class="stat-row"><span class="lbl">Flat bonus/touch</span><span class="val" id="m-bonus">+0</span></div>
-      <div class="stat-row"><span class="lbl">Global ×</span><span class="val" id="m-global">×1.00</span></div>
-      <div class="stat-row"><span class="lbl">Location ×</span><span class="val" id="m-loc">×1.00</span></div>
-      <div class="stat-row"><span class="lbl">Grass/sec</span><span class="val" id="m-tps">0.0</span></div>
-    </div>
-
   </div>
 
-  <!-- Right: tabs -->
-  <div class="right-panel">
-    <div class="tab-bar">
-      <button class="tab-btn active" data-tab="locations">📍 Locations</button>
-      <button class="tab-btn"        data-tab="skills">🎒 Skills</button>
-    </div>
+  <!-- Upgrades -->
+  <div class="upgrade-panel" id="upgrade-panel">
+    <div class="panel-title">⬆️ Upgrades</div>
+  </div>
 
-    <div class="tab-content active" id="tab-locations"></div>
-    <div class="tab-content"        id="tab-skills">
-      <div class="skills-grid" id="skills-grid"></div>
-    </div>
+  <!-- Buildings -->
+  <div class="building-panel" id="building-panel">
+    <div class="panel-title">🏗️ Buildings</div>
   </div>
 
 </div>
@@ -407,51 +288,51 @@
 <script>
 // ─── State ────────────────────────────────────────────────────────────────────
 const state = {
-  grass: 0,
-  totalGrass: 0,
-  clickBonus: 0,
-  globalMult: 1,
-  locMult: 1,        // fps-only multiplier from skills
-  buildings: {},
-  upgrades: {},
+  flies: 0,
+  totalFlies: 0,
+  clickBonus: 0,      // flat bonus per click from upgrades
+  globalMult: 1,      // multiplicative global multiplier
+  buildings: {},      // id -> count
+  upgrades: {},       // id -> level purchased
 };
 
-// ─── Locations (buildings) ────────────────────────────────────────────────────
-const LOCATIONS = [
-  { id: 'lawn',     icon: '🏡', name: 'Front Lawn',     baseCost: 10,    baseTps: 0.1,  desc: 'Your own backyard. A humble start.' },
-  { id: 'park',     icon: '🌳', name: 'Local Park',     baseCost: 80,    baseTps: 0.5,  desc: 'A short walk. Freshly mowed.' },
-  { id: 'trail',    icon: '🥾', name: 'Nature Trail',   baseCost: 500,   baseTps: 3,    desc: 'A proper hike through tall grass.' },
-  { id: 'meadow',   icon: '🌾', name: 'Open Meadow',    baseCost: 3000,  baseTps: 15,   desc: 'Rolling hills as far as you can see.' },
-  { id: 'forest',   icon: '🌲', name: 'Deep Forest',    baseCost: 20000, baseTps: 80,   desc: 'Ancient trees, endless undergrowth.' },
-  { id: 'alpine',   icon: '🏔️', name: 'Alpine Meadow',  baseCost: 150000,baseTps: 400,  desc: 'High altitude grasslands above the clouds.' },
-  { id: 'prairie',  icon: '🌍', name: 'Endless Prairie',baseCost: 1e6,   baseTps: 2000, desc: 'Touch grass at continental scale.' },
+// ─── Buildings ────────────────────────────────────────────────────────────────
+const BUILDINGS = [
+  { id: 'pond',      icon: '🌿', name: 'Lily Pad',      baseCost: 10,   baseFps: 0.1,  desc: 'A resting spot. Flies come to you.' },
+  { id: 'log',       icon: '🪵', name: 'Mossy Log',     baseCost: 80,   baseFps: 0.5,  desc: 'Insects love rotting wood.' },
+  { id: 'swamp',     icon: '🌾', name: 'Swamp Patch',   baseCost: 500,  baseFps: 3,    desc: 'A buzzing hotspot.' },
+  { id: 'pond2',     icon: '💧', name: 'Frog Pond',     baseCost: 3000, baseFps: 15,   desc: 'A full pond ecosystem.' },
+  { id: 'rainforest',icon: '🌴', name: 'Rainforest',    baseCost: 20000,baseFps: 80,   desc: 'Infinite insects in the canopy.' },
+  { id: 'bog',       icon: '🌫️', name: 'Haunted Bog',   baseCost: 150000,baseFps:400,  desc: 'Otherworldly fly quantities.' },
+  { id: 'dimension', icon: '🌀', name: 'Fly Dimension', baseCost:1e6,   baseFps: 2000, desc: 'Flies from another realm.' },
 ];
 
-// ─── Skills (upgrades) ────────────────────────────────────────────────────────
-const SKILLS = [
-  // Click bonuses
-  { id: 'bare_feet',    name: 'Bare Feet',         type: 'click',  value: 1,    maxLevel: 10, baseCost: 15,     costScale: 3,   icon: '🦶', desc: '+1 grass per touch' },
-  { id: 'good_shoes',   name: 'Trail Runners',     type: 'click',  value: 5,    maxLevel: 8,  baseCost: 500,    costScale: 4,   icon: '👟', desc: '+5 grass per touch' },
-  { id: 'hiking_boots', name: 'Hiking Boots',      type: 'click',  value: 20,   maxLevel: 6,  baseCost: 10000,  costScale: 5,   icon: '🥾', desc: '+20 grass per touch' },
-  { id: 'speed_walk',   name: 'Speed Walker',      type: 'click',  value: 100,  maxLevel: 5,  baseCost: 500000, costScale: 6,   icon: '🏃', desc: '+100 grass per touch' },
+// ─── Upgrades ─────────────────────────────────────────────────────────────────
+// type: 'click' (flat per-click), 'global' (multiplier), 'fps' (fps mult)
+const UPGRADES = [
+  // Click upgrades
+  { id: 'sticky_tongue', name: 'Stickier Tongue',   type: 'click',  value: 1,    maxLevel: 10, baseCost: 15,    costScale: 3,    icon: '👅', desc: '+1 fly per click' },
+  { id: 'faster_tongue', name: 'Lightning Tongue',  type: 'click',  value: 5,    maxLevel: 8,  baseCost: 500,   costScale: 4,    icon: '⚡', desc: '+5 flies per click' },
+  { id: 'mega_tongue',   name: 'Mega Tongue',        type: 'click',  value: 20,   maxLevel: 6,  baseCost: 10000, costScale: 5,    icon: '💪', desc: '+20 flies per click' },
+  { id: 'hyper_tongue',  name: 'Hyper Tongue',       type: 'click',  value: 100,  maxLevel: 5,  baseCost: 500000,costScale: 6,    icon: '🚀', desc: '+100 flies per click' },
   // Global multipliers
-  { id: 'sunscreen',    name: 'Sunscreen',         type: 'global', value: 1.5,  maxLevel: 5,  baseCost: 200,    costScale: 8,   icon: '☀️', desc: '×1.5 everything' },
-  { id: 'vitamin_d',    name: 'Vitamin D',         type: 'global', value: 2,    maxLevel: 4,  baseCost: 25000,  costScale: 10,  icon: '💊', desc: '×2 everything' },
-  { id: 'post_rain',    name: 'Post-Rain Grass',   type: 'global', value: 3,    maxLevel: 3,  baseCost: 2e6,    costScale: 15,  icon: '🌧️', desc: '×3 everything' },
-  // Location multipliers
-  { id: 'green_thumb',  name: 'Green Thumb',       type: 'loc',    value: 1.5,  maxLevel: 5,  baseCost: 1000,   costScale: 8,   icon: '🌱', desc: '×1.5 grass/sec' },
-  { id: 'lucky_clover', name: 'Lucky Clover',      type: 'loc',    value: 2,    maxLevel: 4,  baseCost: 50000,  costScale: 10,  icon: '🍀', desc: '×2 grass/sec' },
+  { id: 'ribbit_song',   name: 'Ribbit Song',        type: 'global', value: 1.5,  maxLevel: 5,  baseCost: 200,   costScale: 8,    icon: '🎵', desc: '×1.5 all production' },
+  { id: 'frog_choir',    name: 'Frog Choir',         type: 'global', value: 2,    maxLevel: 4,  baseCost: 25000, costScale: 10,   icon: '🎶', desc: '×2 all production' },
+  { id: 'ancient_croak', name: 'Ancient Croak',      type: 'global', value: 3,    maxLevel: 3,  baseCost: 2e6,   costScale: 15,   icon: '📯', desc: '×3 all production' },
+  // FPS multipliers (buildings only)
+  { id: 'bug_magnet',    name: 'Bug Magnet',         type: 'fps',    value: 1.5,  maxLevel: 5,  baseCost: 1000,  costScale: 8,    icon: '🧲', desc: '×1.5 flies/sec' },
+  { id: 'swarm_pheromone',name:'Swarm Pheromone',    type: 'fps',    value: 2,    maxLevel: 4,  baseCost: 50000, costScale: 10,   icon: '🌸', desc: '×2 flies/sec' },
 ];
 
 // ─── Milestones ───────────────────────────────────────────────────────────────
 const MILESTONES = [
-  { at: 100,   msg: '🌱 100 grass touched. You went outside!' },
-  { at: 1000,  msg: '🌿 1,000 touches. Skill issue resolved.' },
-  { at: 10000, msg: '🌾 10,000! You are one with the lawn.' },
-  { at: 1e5,   msg: '🌲 100k! Certified outdoors person.' },
-  { at: 1e6,   msg: '🏔️ 1 million! Transcendent grass toucher.' },
-  { at: 1e8,   msg: '🌍 100 million! The earth knows your name.' },
-  { at: 1e10,  msg: '🌌 10 billion! Cosmic grass energy.' },
+  { at: 100,    msg: '🐸 100 flies! The frog is warming up.' },
+  { at: 1000,   msg: '🌿 1,000 flies! A true swamp predator.' },
+  { at: 10000,  msg: '💧 10,000 flies! The pond is yours.' },
+  { at: 100000, msg: '🌴 100k flies! Rainforest royalty.' },
+  { at: 1e6,    msg: '🌀 1 million flies! Transcendent frog.' },
+  { at: 1e8,    msg: '✨ 100 million! Legendary amphibian.' },
+  { at: 1e10,   msg: '🌌 10 billion! Cosmic ribbit.' },
 ];
 let nextMilestone = 0;
 
@@ -464,28 +345,27 @@ function fmt(n) {
   return Math.floor(n).toString();
 }
 
-function locationCost(loc, owned) {
-  return Math.ceil(loc.baseCost * Math.pow(1.15, owned));
+function buildingCost(b, owned) {
+  return Math.ceil(b.baseCost * Math.pow(1.15, owned));
 }
 
-function skillCost(sk, level) {
-  return Math.ceil(sk.baseCost * Math.pow(sk.costScale, level));
+function upgradeCost(u, level) {
+  return Math.ceil(u.baseCost * Math.pow(u.costScale, level));
 }
 
-function computeLocMult() {
-  let m = 1;
-  for (const sk of SKILLS.filter(s => s.type === 'loc')) {
-    m *= Math.pow(sk.value, state.upgrades[sk.id] || 0);
+function computeFps() {
+  let fps = 0;
+  for (const b of BUILDINGS) {
+    fps += b.baseFps * (state.buildings[b.id] || 0);
   }
-  return m;
-}
-
-function computeTps() {
-  let tps = 0;
-  for (const loc of LOCATIONS) {
-    tps += loc.baseTps * (state.buildings[loc.id] || 0);
+  // fps upgrades
+  let fpsMult = 1;
+  for (const u of UPGRADES.filter(u => u.type === 'fps')) {
+    const lvl = state.upgrades[u.id] || 0;
+    fpsMult *= Math.pow(u.value, lvl);
   }
-  return tps * computeLocMult() * state.globalMult;
+  fps *= fpsMult * state.globalMult;
+  return fps;
 }
 
 function computeClickValue() {
@@ -494,192 +374,195 @@ function computeClickValue() {
 
 function recomputeGlobalMult() {
   let m = 1;
-  for (const sk of SKILLS.filter(s => s.type === 'global')) {
-    m *= Math.pow(sk.value, state.upgrades[sk.id] || 0);
+  for (const u of UPGRADES.filter(u => u.type === 'global')) {
+    const lvl = state.upgrades[u.id] || 0;
+    m *= Math.pow(u.value, lvl);
   }
   state.globalMult = m;
 }
 
 function recomputeClickBonus() {
-  let b = 0;
-  for (const sk of SKILLS.filter(s => s.type === 'click')) {
-    b += sk.value * (state.upgrades[sk.id] || 0);
+  let bonus = 0;
+  for (const u of UPGRADES.filter(u => u.type === 'click')) {
+    bonus += u.value * (state.upgrades[u.id] || 0);
   }
-  state.clickBonus = b;
+  state.clickBonus = bonus;
 }
 
 // ─── Rendering ────────────────────────────────────────────────────────────────
 function renderHeader() {
-  document.getElementById('hdr-grass').textContent = fmt(state.grass);
-  document.getElementById('hdr-total').textContent = fmt(state.totalGrass);
-  document.getElementById('hdr-tps').textContent   = fmt(computeTps());
-  document.getElementById('hdr-tpc').textContent   = fmt(computeClickValue());
+  document.getElementById('hdr-flies').textContent  = fmt(state.flies);
+  document.getElementById('hdr-total').textContent  = fmt(state.totalFlies);
+  document.getElementById('hdr-fps').textContent    = fmt(computeFps()) + '/s';
+  document.getElementById('hdr-fpc').textContent    = fmt(computeClickValue());
 }
 
-function renderStats() {
-  document.getElementById('m-bonus').textContent  = '+' + fmt(state.clickBonus);
-  document.getElementById('m-global').textContent = '×' + state.globalMult.toFixed(2);
-  document.getElementById('m-loc').textContent    = '×' + computeLocMult().toFixed(2);
-  document.getElementById('m-tps').textContent    = fmt(computeTps()) + '/s';
+function renderMultiplierBar() {
+  document.getElementById('m-base').textContent        = '1';
+  document.getElementById('m-click-bonus').textContent = '+' + fmt(state.clickBonus);
+  document.getElementById('m-global').textContent      = '×' + state.globalMult.toFixed(2);
+  document.getElementById('m-fps').textContent         = fmt(computeFps()) + '/s';
 }
 
-function renderLocations() {
-  const panel = document.getElementById('tab-locations');
+function renderUpgrades() {
+  const panel = document.getElementById('upgrade-panel');
+  // Keep title node, replace cards
+  const title = panel.querySelector('.panel-title');
   panel.innerHTML = '';
-  const locMult = computeLocMult();
+  panel.appendChild(title);
 
-  for (const loc of LOCATIONS) {
-    const owned = state.buildings[loc.id] || 0;
-    const cost  = locationCost(loc, owned);
-    const can   = state.grass >= cost;
-    const thisTps = (loc.baseTps * owned * locMult * state.globalMult).toFixed(1);
+  for (const u of UPGRADES) {
+    const lvl  = state.upgrades[u.id] || 0;
+    const cost = upgradeCost(u, lvl);
+    const maxed = lvl >= u.maxLevel;
+    const can   = !maxed && state.flies >= cost;
 
     const card = document.createElement('div');
-    card.className = 'location-card' + (can ? ' affordable' : '');
+    card.className = 'upgrade-card' + (maxed ? ' maxed' : can ? ' affordable' : '');
+
     card.innerHTML = `
-      <div class="loc-icon">${loc.icon}</div>
-      <div class="loc-info">
-        <div class="name">${loc.name}</div>
-        <div class="desc">${loc.desc}</div>
-        <div class="owned">Owned: ${owned} &nbsp;·&nbsp; <span class="tps">${thisTps} grass/sec</span></div>
+      <div class="upgrade-info">
+        <div class="name">${u.icon} ${u.name}</div>
+        <div class="desc">${u.desc}</div>
+        <div class="level">Level ${lvl}/${u.maxLevel}${maxed ? ' — MAXED' : ''}</div>
       </div>
-      <button class="loc-buy" ${can ? '' : 'disabled'} data-id="${loc.id}">
-        🌿 ${fmt(cost)}
+      <button class="upgrade-btn" ${maxed || !can ? 'disabled' : ''} data-id="${u.id}">
+        ${maxed ? 'Maxed' : '🪰 ' + fmt(cost)}
       </button>`;
     panel.appendChild(card);
   }
 
-  panel.querySelectorAll('.loc-buy[data-id]').forEach(btn => {
-    btn.addEventListener('click', () => buyLocation(btn.dataset.id));
+  panel.querySelectorAll('.upgrade-btn[data-id]').forEach(btn => {
+    btn.addEventListener('click', () => buyUpgrade(btn.dataset.id));
   });
 }
 
-function renderSkills() {
-  const grid = document.getElementById('skills-grid');
-  grid.innerHTML = '';
+function renderBuildings() {
+  const panel = document.getElementById('building-panel');
+  const title = panel.querySelector('.panel-title');
+  panel.innerHTML = '';
+  panel.appendChild(title);
 
-  for (const sk of SKILLS) {
-    const lvl   = state.upgrades[sk.id] || 0;
-    const cost  = skillCost(sk, lvl);
-    const maxed = lvl >= sk.maxLevel;
-    const can   = !maxed && state.grass >= cost;
-
-    const pips = Array.from({ length: sk.maxLevel }, (_, i) =>
-      `<div class="pip${i < lvl ? ' filled' : ''}"></div>`
-    ).join('');
+  for (const b of BUILDINGS) {
+    const owned = state.buildings[b.id] || 0;
+    const cost  = buildingCost(b, owned);
+    const can   = state.flies >= cost;
 
     const card = document.createElement('div');
-    card.className = 'skill-card' + (maxed ? ' maxed' : can ? ' affordable' : '');
+    card.className = 'building-card' + (can ? ' affordable' : '');
+
+    const thisFps = (b.baseFps * owned * computeFpsMult() * state.globalMult).toFixed(1);
+
     card.innerHTML = `
-      <div class="skill-top">
-        <div class="skill-icon">${sk.icon}</div>
-        <div class="skill-name">${sk.name}</div>
+      <div class="building-icon">${b.icon}</div>
+      <div class="building-info">
+        <div class="name">${b.name}</div>
+        <div class="owned">Owned: ${owned}</div>
+        <div class="fps">${thisFps} flies/sec</div>
       </div>
-      <div class="skill-desc">${sk.desc}</div>
-      <div class="skill-pip-row">${pips}</div>
-      <div class="skill-level">Lv ${lvl}/${sk.maxLevel}${maxed ? ' — MAXED' : ''}</div>
-      <button class="skill-btn" ${maxed || !can ? 'disabled' : ''} data-id="${sk.id}">
-        ${maxed ? 'Maxed' : '🌿 ' + fmt(cost)}
+      <button class="building-buy" ${can ? '' : 'disabled'} data-id="${b.id}">
+        🪰 ${fmt(cost)}
       </button>`;
-    grid.appendChild(card);
+    panel.appendChild(card);
   }
 
-  grid.querySelectorAll('.skill-btn[data-id]').forEach(btn => {
-    btn.addEventListener('click', () => buySkill(btn.dataset.id));
+  panel.querySelectorAll('.building-buy[data-id]').forEach(btn => {
+    btn.addEventListener('click', () => buyBuilding(btn.dataset.id));
   });
+}
+
+function computeFpsMult() {
+  let m = 1;
+  for (const u of UPGRADES.filter(u => u.type === 'fps')) {
+    m *= Math.pow(u.value, state.upgrades[u.id] || 0);
+  }
+  return m;
 }
 
 function render() {
   renderHeader();
-  renderStats();
-  renderLocations();
-  renderSkills();
-}
-
-function updateAffordability() {
-  document.querySelectorAll('.loc-buy[data-id]').forEach(btn => {
-    const loc  = LOCATIONS.find(l => l.id === btn.dataset.id);
-    const cost = locationCost(loc, state.buildings[loc.id] || 0);
-    btn.disabled = state.grass < cost;
-    btn.closest('.location-card').classList.toggle('affordable', state.grass >= cost);
-  });
-  document.querySelectorAll('.skill-btn[data-id]').forEach(btn => {
-    const sk   = SKILLS.find(s => s.id === btn.dataset.id);
-    const lvl  = state.upgrades[sk.id] || 0;
-    const cost = skillCost(sk, lvl);
-    const maxed = lvl >= sk.maxLevel;
-    btn.disabled = maxed || state.grass < cost;
-    btn.closest('.skill-card').classList.toggle('affordable', !maxed && state.grass >= cost);
-  });
+  renderMultiplierBar();
+  renderUpgrades();
+  renderBuildings();
 }
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
 function earn(amount) {
-  state.grass += amount;
-  state.totalGrass += amount;
+  state.flies += amount;
+  state.totalFlies += amount;
   checkMilestones();
 }
 
-function buyLocation(id) {
-  const loc   = LOCATIONS.find(l => l.id === id);
-  const owned = state.buildings[id] || 0;
-  const cost  = locationCost(loc, owned);
-  if (state.grass < cost) return;
-  state.grass -= cost;
-  state.buildings[id] = owned + 1;
-  render();
-}
-
-function buySkill(id) {
-  const sk  = SKILLS.find(s => s.id === id);
-  const lvl = state.upgrades[id] || 0;
-  if (lvl >= sk.maxLevel) return;
-  const cost = skillCost(sk, lvl);
-  if (state.grass < cost) return;
-  state.grass -= cost;
+function buyUpgrade(id) {
+  const u    = UPGRADES.find(u => u.id === id);
+  const lvl  = state.upgrades[id] || 0;
+  if (lvl >= u.maxLevel) return;
+  const cost = upgradeCost(u, lvl);
+  if (state.flies < cost) return;
+  state.flies -= cost;
   state.upgrades[id] = lvl + 1;
   recomputeGlobalMult();
   recomputeClickBonus();
   render();
 }
 
+function buyBuilding(id) {
+  const b    = BUILDINGS.find(b => b.id === id);
+  const owned = state.buildings[id] || 0;
+  const cost  = buildingCost(b, owned);
+  if (state.flies < cost) return;
+  state.flies -= cost;
+  state.buildings[id] = owned + 1;
+  render();
+}
+
 // ─── Click handler ────────────────────────────────────────────────────────────
-const touchBtn = document.getElementById('touch-btn');
-touchBtn.addEventListener('click', (e) => {
+const frogBtn = document.getElementById('frog-btn');
+frogBtn.addEventListener('click', (e) => {
   const val = computeClickValue();
   earn(val);
 
-  touchBtn.classList.remove('squish');
-  void touchBtn.offsetWidth;
-  touchBtn.classList.add('squish');
+  // Bounce animation
+  frogBtn.classList.remove('bounce');
+  void frogBtn.offsetWidth;
+  frogBtn.classList.add('bounce');
 
+  // Floating number
   const float = document.createElement('div');
   float.className = 'float';
-  float.textContent = '+' + fmt(val) + ' 🌿';
-  float.style.left = (e.clientX - 24) + 'px';
-  float.style.top  = (e.clientY - 14) + 'px';
+  float.textContent = '+' + fmt(val);
+  float.style.left = (e.clientX - 15) + 'px';
+  float.style.top  = (e.clientY - 10) + 'px';
   document.body.appendChild(float);
-  setTimeout(() => float.remove(), 900);
+  setTimeout(() => float.remove(), 1000);
 
   renderHeader();
-  renderStats();
+  renderMultiplierBar();
+  // Affordability check without full re-render for performance
   updateAffordability();
 });
 
-// ─── Tab switching ─────────────────────────────────────────────────────────────
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+function updateAffordability() {
+  document.querySelectorAll('.upgrade-btn[data-id]').forEach(btn => {
+    const u    = UPGRADES.find(u => u.id === btn.dataset.id);
+    const lvl  = state.upgrades[btn.dataset.id] || 0;
+    const cost = upgradeCost(u, lvl);
+    const maxed = lvl >= u.maxLevel;
+    btn.disabled = maxed || state.flies < cost;
+    btn.closest('.upgrade-card').classList.toggle('affordable', !maxed && state.flies >= cost);
   });
-});
+  document.querySelectorAll('.building-buy[data-id]').forEach(btn => {
+    const b    = BUILDINGS.find(b => b.id === btn.dataset.id);
+    const cost = buildingCost(b, state.buildings[b.id] || 0);
+    btn.disabled = state.flies < cost;
+    btn.closest('.building-card').classList.toggle('affordable', state.flies >= cost);
+  });
+}
 
 // ─── Milestones ───────────────────────────────────────────────────────────────
 function checkMilestones() {
   while (nextMilestone < MILESTONES.length &&
-         state.totalGrass >= MILESTONES[nextMilestone].at) {
+         state.totalFlies >= MILESTONES[nextMilestone].at) {
     showToast(MILESTONES[nextMilestone].msg);
     nextMilestone++;
   }
@@ -693,51 +576,49 @@ function showToast(msg) {
   showToast._t = setTimeout(() => toast.classList.remove('show'), 3500);
 }
 
-// ─── Grass blade particles ────────────────────────────────────────────────────
-const grassDebt = {};
-const GRASS_ICONS = ['🌿', '🌱', '🌾'];
-const MAX_PARTICLES = 60;
+// ─── Fly particles ────────────────────────────────────────────────────────────
+const flyDebt = {};          // building id -> fractional flies owed
+const MAX_FLY_PARTICLES = 60;
 
-function spawnGrassFromLocation(id) {
-  if (document.querySelectorAll('.grass-particle').length >= MAX_PARTICLES) return;
-  const btn = document.querySelector(`.loc-buy[data-id="${id}"]`);
+function spawnFlyFromBuilding(id) {
+  if (document.querySelectorAll('.fly-particle').length >= MAX_FLY_PARTICLES) return;
+  const btn = document.querySelector(`.building-buy[data-id="${id}"]`);
   if (!btn) return;
   const rect = btn.getBoundingClientRect();
   const el = document.createElement('div');
-  el.className = 'grass-particle';
-  el.textContent = GRASS_ICONS[Math.floor(Math.random() * GRASS_ICONS.length)];
+  el.className = 'fly-particle';
+  el.textContent = '🪰';
   el.style.left = (rect.left + rect.width  / 2 - 8) + 'px';
   el.style.top  = (rect.top  + rect.height / 2 - 8) + 'px';
   el.style.setProperty('--drift', (Math.random() * 80 - 40) + 'px');
-  el.style.setProperty('--spin',  (Math.random() * 60 - 30) + 'deg');
   document.body.appendChild(el);
-  setTimeout(() => el.remove(), 1300);
+  setTimeout(() => el.remove(), 1200);
 }
 
 // ─── Game loop ────────────────────────────────────────────────────────────────
 let lastTick = performance.now();
 
 function tick(now) {
-  const dt  = Math.min((now - lastTick) / 1000, 1);
-  lastTick  = now;
-  const tps = computeTps();
-
-  if (tps > 0) {
-    earn(tps * dt);
+  const dt = Math.min((now - lastTick) / 1000, 1); // clamp to 1s to avoid tab-focus bursts
+  lastTick = now;
+  const fps = computeFps();
+  if (fps > 0) {
+    earn(fps * dt);
     renderHeader();
-    renderStats();
+    renderMultiplierBar();
     updateAffordability();
   }
 
-  const locMult = computeLocMult();
-  for (const loc of LOCATIONS) {
-    const owned = state.buildings[loc.id] || 0;
+  // Spawn fly particles from buildings proportional to their fps
+  const fpsMult = computeFpsMult();
+  for (const b of BUILDINGS) {
+    const owned = state.buildings[b.id] || 0;
     if (owned === 0) continue;
-    const bTps = loc.baseTps * owned * locMult * state.globalMult;
-    grassDebt[loc.id] = (grassDebt[loc.id] || 0) + bTps * dt;
-    const toSpawn = Math.min(Math.floor(grassDebt[loc.id]), 5);
-    grassDebt[loc.id] -= toSpawn;
-    for (let i = 0; i < toSpawn; i++) spawnGrassFromLocation(loc.id);
+    const bFps = b.baseFps * owned * fpsMult * state.globalMult;
+    flyDebt[b.id] = (flyDebt[b.id] || 0) + bFps * dt;
+    const toSpawn = Math.min(Math.floor(flyDebt[b.id]), 5); // max 5 per building per frame
+    flyDebt[b.id] -= toSpawn;
+    for (let i = 0; i < toSpawn; i++) spawnFlyFromBuilding(b.id);
   }
 
   requestAnimationFrame(tick);
