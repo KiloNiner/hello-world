@@ -206,6 +206,19 @@
     100% { opacity: 0; transform: translateY(-70px); }
   }
 
+  /* ── Building fly particles ── */
+  .fly-particle {
+    position: fixed;
+    font-size: 1rem;
+    pointer-events: none;
+    z-index: 998;
+    animation: flyAway 1.2s ease-out forwards;
+  }
+  @keyframes flyAway {
+    0%   { opacity: 1;   transform: translate(0, 0) scale(1); }
+    100% { opacity: 0;   transform: translate(var(--drift, 0px), -70px) scale(0.5); }
+  }
+
   /* ── Milestones ── */
   #milestone-toast {
     position: fixed;
@@ -563,11 +576,30 @@ function showToast(msg) {
   showToast._t = setTimeout(() => toast.classList.remove('show'), 3500);
 }
 
+// ─── Fly particles ────────────────────────────────────────────────────────────
+const flyDebt = {};          // building id -> fractional flies owed
+const MAX_FLY_PARTICLES = 60;
+
+function spawnFlyFromBuilding(id) {
+  if (document.querySelectorAll('.fly-particle').length >= MAX_FLY_PARTICLES) return;
+  const btn = document.querySelector(`.building-buy[data-id="${id}"]`);
+  if (!btn) return;
+  const rect = btn.getBoundingClientRect();
+  const el = document.createElement('div');
+  el.className = 'fly-particle';
+  el.textContent = '🪰';
+  el.style.left = (rect.left + rect.width  / 2 - 8) + 'px';
+  el.style.top  = (rect.top  + rect.height / 2 - 8) + 'px';
+  el.style.setProperty('--drift', (Math.random() * 80 - 40) + 'px');
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1200);
+}
+
 // ─── Game loop ────────────────────────────────────────────────────────────────
 let lastTick = performance.now();
 
 function tick(now) {
-  const dt = (now - lastTick) / 1000;
+  const dt = Math.min((now - lastTick) / 1000, 1); // clamp to 1s to avoid tab-focus bursts
   lastTick = now;
   const fps = computeFps();
   if (fps > 0) {
@@ -576,6 +608,19 @@ function tick(now) {
     renderMultiplierBar();
     updateAffordability();
   }
+
+  // Spawn fly particles from buildings proportional to their fps
+  const fpsMult = computeFpsMult();
+  for (const b of BUILDINGS) {
+    const owned = state.buildings[b.id] || 0;
+    if (owned === 0) continue;
+    const bFps = b.baseFps * owned * fpsMult * state.globalMult;
+    flyDebt[b.id] = (flyDebt[b.id] || 0) + bFps * dt;
+    const toSpawn = Math.min(Math.floor(flyDebt[b.id]), 5); // max 5 per building per frame
+    flyDebt[b.id] -= toSpawn;
+    for (let i = 0; i < toSpawn; i++) spawnFlyFromBuilding(b.id);
+  }
+
   requestAnimationFrame(tick);
 }
 
