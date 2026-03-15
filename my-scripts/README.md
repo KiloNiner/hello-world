@@ -108,6 +108,36 @@ Arguments:
 * --timeout SECS       Per-connection timeout (default: 10; must be > 0)
 * --verbose            Print progress information to stderr
 
+### cleanup_inbox.applescript
+Moves newsletter and commercial emails from iCloud INBOX and Exchange Indbakke
+to their respective Deleted folders. Sender addresses are loaded at runtime
+from `cleanup_senders.txt` in the same directory, so the list can be updated
+without editing the script.
+
+Run with:
+```
+osascript cleanup_inbox.applescript
+```
+
+### cleanup_senders.txt
+Plain-text list of sender addresses targeted by `cleanup_inbox.applescript`.
+One address per line. Blank lines and lines starting with `#` are ignored, so
+entries can be grouped with comments. Add or remove addresses here to change
+what gets cleaned up.
+
+### top_senders.applescript
+Scans iCloud INBOX and Exchange Indbakke and prints the top N senders ranked
+by message count. Useful for identifying candidates to add to
+`cleanup_senders.txt`.
+
+Change the `topN` variable at the top of the script to control how many
+senders are shown (default: 50).
+
+Run with:
+```
+osascript top_senders.applescript
+```
+
 ### starfield.py
 Animated terminal star field. Stars fade in and out through colour gradients
 using Unicode round and pointed glyphs. Colour depth (truecolor / 256-colour /

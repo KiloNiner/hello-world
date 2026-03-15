@@ -1,0 +1,62 @@
+# cleanup_senders.txt
+# One sender address per line. Blank lines and lines starting with # are ignored.
+# Used by cleanup_inbox.applescript to decide which emails to move to Deleted.
+
+# LinkedIn
+messages-noreply@linkedin.com
+jobalerts-noreply@linkedin.com
+notifications-noreply@linkedin.com
+groups-noreply@linkedin.com
+
+# Retail / commercial newsletters
+hello@pen.store
+nyhedsmail@email.ilva.com
+kontakt@skousen.dk
+news@news.toejeksperten.dk
+elgiganten@email.elgiganten.dk
+marketing@proshop.dk
+mail@wagner.dk
+news@news.wagner.dk
+aeg@marketing.aeg.com
+DoNotReply@mcdonalds.com
+
+# Food & dining
+jonas@email.sunset-boulevard.dk
+app@hej.lagkagehuset.dk
+newsletter@update.just-eat.dk
+no-reply@order.just-eat.dk
+familyclub@bones.dk
+noreply@bones.dk
+
+# Travel
+info.dk@sc.stenaline.com
+media@fjordtours.dk
+hola@info.hotelsviva.com
+email.campaign@sg.booking.com
+fly_at_seaplanes_dk_ntk24arfj4504v_2b7x5967@icloud.com
+
+# Tech / software
+eu@news.ugreen.com
+synology@news.synology.com
+communications@stardockentertainment.info
+DoNotReply@ConnectedCommunity.org
+
+# Media / entertainment
+newsletter@backerclub.co
+newsletter@storybundle.com
+contact@discoverscifi.com
+sarahlindseycooke+killer-tater-tots@substack.com
+notepad@theverge.com
+subscriptions@theverge.com
+kontakt@unsolved.se
+donotreply@audible.co.uk
+info@members.netflix.com
+
+# Other
+dsb@mail.dsb.dk
+info@newsletter.tipster.dk
+prosa@info.prosa.dk
+monday.reply@brighttalk.com
+followups@clean.email
+mail@send.originaltalks.dk
+noreply_at_glassdoor_com_zypwtjpq67_8a4c403d@privaterelay.appleid.com
