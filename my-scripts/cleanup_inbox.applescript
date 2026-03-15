@@ -31,16 +31,20 @@ tell application "Mail"
 
 	-- iCloud INBOX
 	log "--- Processing iCloud INBOX ---"
-	set msgs1 to messages of inbox1
-	log "Found " & (count of msgs1) & " messages in iCloud INBOX"
+	set msgs1 to (messages of inbox1 whose deleted status is false)
+	set total1 to count of msgs1
+	log "Found " & total1 & " messages in iCloud INBOX"
+	set toMove1 to {}
+	set idx to 0
 	repeat with msg in msgs1
+		set idx to idx + 1
+		log "  Scanning [iCloud] " & idx & "/" & total1
 		set sndr to sender of msg
 		set matched to false
 		repeat with target in targetSenders
 			if sndr contains target then
-				log "  MOVING [iCloud]: " & sndr & " | " & subject of msg
-				move msg to trash1
-				set movedCount to movedCount + 1
+				log "    -> Queuing: " & sndr & " | " & subject of msg
+				set end of toMove1 to msg
 				set matched to true
 				exit repeat
 			end if
@@ -49,19 +53,32 @@ tell application "Mail"
 			set skippedCount to skippedCount + 1
 		end if
 	end repeat
+	set moveTotal1 to count of toMove1
+	log "Deleting " & moveTotal1 & " matched messages from iCloud INBOX"
+	set idx to 0
+	repeat with msg in toMove1
+		set idx to idx + 1
+		log "  Deleting [iCloud] " & idx & "/" & moveTotal1
+		move msg to trash1
+		set movedCount to movedCount + 1
+	end repeat
 
 	-- Exchange Indbakke
 	log "--- Processing Exchange Indbakke ---"
-	set msgs2 to messages of inbox2
-	log "Found " & (count of msgs2) & " messages in Exchange Indbakke"
+	set msgs2 to (messages of inbox2 whose deleted status is false)
+	set total2 to count of msgs2
+	log "Found " & total2 & " messages in Exchange Indbakke"
+	set toMove2 to {}
+	set idx to 0
 	repeat with msg in msgs2
+		set idx to idx + 1
+		log "  Scanning [Exchange] " & idx & "/" & total2
 		set sndr to sender of msg
 		set matched to false
 		repeat with target in targetSenders
 			if sndr contains target then
-				log "  MOVING [Exchange]: " & sndr & " | " & subject of msg
-				move msg to trash2
-				set movedCount to movedCount + 1
+				log "    -> Queuing: " & sndr & " | " & subject of msg
+				set end of toMove2 to msg
 				set matched to true
 				exit repeat
 			end if
@@ -69,6 +86,15 @@ tell application "Mail"
 		if not matched then
 			set skippedCount to skippedCount + 1
 		end if
+	end repeat
+	set moveTotal2 to count of toMove2
+	log "Deleting " & moveTotal2 & " matched messages from Exchange Indbakke"
+	set idx to 0
+	repeat with msg in toMove2
+		set idx to idx + 1
+		log "  Deleting [Exchange] " & idx & "/" & moveTotal2
+		move msg to trash2
+		set movedCount to movedCount + 1
 	end repeat
 end tell
 
