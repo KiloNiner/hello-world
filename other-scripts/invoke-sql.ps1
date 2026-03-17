@@ -1,30 +1,83 @@
-# Found on stack exchange, allows you to perform a query against a MSSQL database with no additional dependencies.
-# WARNING: $sqlCommand is passed directly to SqlCommand without parameterization.
-# Never build $sqlCommand by concatenating untrusted/user-supplied input; doing so
+﻿# Executes a SQL query against a Microsoft SQL Server instance with no additional dependencies.
+# Source: https://stackoverflow.com/a/23358758
+#
+# WARNING: $SqlCommand is passed directly to SqlCommand without parameterization.
+# Never build $SqlCommand by concatenating untrusted/user-supplied input; doing so
 # creates a SQL injection vulnerability. Use parameterized queries for dynamic values.
-function Invoke-SQL
-{
+
+function Invoke-SQL {
+    <#
+    .SYNOPSIS
+        Executes a SQL query against a Microsoft SQL Server database and returns the result set(s).
+
+    .PARAMETER DataSource
+        SQL Server instance name or address. Defaults to .\SQLEXPRESS.
+
+    .PARAMETER Database
+        Name of the target database. Defaults to MasterData.
+
+    .PARAMETER SqlCommand
+        The SQL query or statement to execute. Must not be built by concatenating
+        untrusted input — use parameterized queries for dynamic values.
+
+    .PARAMETER Credential
+        Optional PSCredential for SQL Server authentication. When omitted, connects
+        using Windows Integrated Security (SSPI).
+
+    .OUTPUTS
+        One or more System.Data.DataTable objects — one per result set returned by the query.
+        If the query returns multiple result sets, all are returned as separate tables.
+
+    .EXAMPLE
+        Invoke-SQL -SqlCommand 'SELECT TOP 10 * FROM dbo.Orders'
+
+    .EXAMPLE
+        $cred = Get-Credential
+        Invoke-SQL -DataSource 'sql01' -Database 'Sales' -SqlCommand 'SELECT @@VERSION' -Credential $cred
+    #>
+    [CmdletBinding()]
     param(
         [ValidateNotNullOrEmpty()]
-        [string] $dataSource = '.\SQLEXPRESS',
+        [string]$DataSource = '.\SQLEXPRESS',
+
         [ValidateNotNullOrEmpty()]
-        [string] $database = 'MasterData',
+        [string]$Database = 'MasterData',
+
+        [Parameter(Mandatory)]
         [ValidateNotNullOrEmpty()]
-        [string] $sqlCommand = $(throw 'Please specify a query.')
+        [string]$SqlCommand,
+
+        [PSCredential]$Credential
     )
 
-    $connectionString = "Data Source=$dataSource; " +
-    'Integrated Security=SSPI; ' +
-    "Initial Catalog=$database"
+    $connection = $null
+    $command    = $null
+    $adapter    = $null
 
-    $connection = New-Object -TypeName system.data.SqlClient.SQLConnection -ArgumentList ($connectionString)
-    $command = New-Object -TypeName system.data.sqlclient.sqlcommand -ArgumentList ($sqlCommand, $connection)
-    $connection.Open()
+    try {
+        if ($Credential) {
+            $connectionString = "Data Source=$DataSource; Initial Catalog=$Database"
+            $sqlCredential    = New-Object System.Data.SqlClient.SqlCredential(
+                $Credential.UserName,
+                $Credential.Password
+            )
+            $connection = New-Object System.Data.SqlClient.SqlConnection($connectionString, $sqlCredential)
+        } else {
+            $connectionString = "Data Source=$DataSource; Integrated Security=SSPI; Initial Catalog=$Database"
+            $connection       = New-Object System.Data.SqlClient.SqlConnection($connectionString)
+        }
 
-    $adapter = New-Object -TypeName System.Data.sqlclient.sqlDataAdapter -ArgumentList $command
-    $dataset = New-Object -TypeName System.Data.DataSet
-    $null = $adapter.Fill($dataset)
+        $command = New-Object System.Data.SqlClient.SqlCommand($SqlCommand, $connection)
+        $adapter = New-Object System.Data.SqlClient.SqlDataAdapter($command)
+        $dataset = New-Object System.Data.DataSet
 
-    $connection.Close()
-    $dataset.Tables
+        $connection.Open()
+        $null = $adapter.Fill($dataset)
+
+        $dataset.Tables
+    } finally {
+        if ($adapter)    { $adapter.Dispose() }
+        if ($command)    { $command.Dispose() }
+        if ($connection) { $connection.Dispose() }
+    }
 }
