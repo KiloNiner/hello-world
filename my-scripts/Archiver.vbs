@@ -11,7 +11,7 @@
 
 Option Explicit
 Dim sSourceDir, nFileAge, oFso, oFile, sTempFolder, dScratch, aScratch, i, _
-	sExec, bDebug, sFileList, sCompressor, sCompressorExe
+	sExec, bDebug, sFileList, sCompressorExe, sCompressorArgs
 
 If WScript.Arguments.Count <> 2 Then
 	Print_Error("Usage: cscript archiver.vbs <folder> <days to keep files>")
@@ -42,12 +42,13 @@ Else
 	WScript.Quit(1)
 End If
 
-' Name, path and arguments of compressor to use. Name for destination archive
-' and list of files will be appended at runtime.
-sCompressor = "c:\Program Files\WinZip\WINZIP32.EXE -m"
+' Path and arguments of compressor to use. Keep these separate so the path
+' can be validated and quoted correctly even when it contains spaces.
+' Archive name and file list will be appended to the command at runtime.
+sCompressorExe  = "c:\Program Files\WinZip\WINZIP32.EXE"
+sCompressorArgs = "-m"
 
 ' Validate compressor executable exists
-sCompressorExe = Split(sCompressor, " ")(0)
 If Not oFso.FileExists(sCompressorExe) Then
 	Print_Error("Compressor not found: " & sCompressorExe)
 	WScript.Quit(1)
@@ -101,10 +102,11 @@ For i = 0 To dScratch.Count - 1
 	MakeFolder(sSourceDir & "\" & Split(aScratch(i), "-")(0) & "\" _
 		& Split(aScratch(i), "-")(1))
 
-	' Command line string for compressor goes here
-	sExec = sCompressor & " " _
-		& sSourceDir & "\" & Split(aScratch(i), "-")(0) & "\" _
-		& Split(aScratch(i), "-")(1) & "\" & Split(aScratch(i), "-")(2) _
+	' Command line string for compressor goes here.
+	' Executable and path arguments are double-quoted to handle spaces.
+	sExec = """" & sCompressorExe & """ " & sCompressorArgs & " " _
+		& """" & sSourceDir & "\" & Split(aScratch(i), "-")(0) & "\" _
+		& Split(aScratch(i), "-")(1) & "\" & Split(aScratch(i), "-")(2) & """" _
 		& " @""" & sTempFolder & "\archive-scratch-" & aScratch(i) _
 		& ".txt"""
 	WScript.StdOut.Write "Creating archive for " & aScratch(i) & "... "
