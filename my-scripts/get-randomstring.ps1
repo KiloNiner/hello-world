@@ -4,6 +4,7 @@
     .DESCRIPTION
     This script creates a cryptographically random string of the given byte length.
     The default length of 32 equates to 256 bits of entropy.
+    Use -Verbose to see diagnostic output; -Debug to enable debug output.
     .PARAMETER length
     The length, or entropy, in bytes of the resulting string. Defaults to 32 bytes.
     This is not the same as the length of the generated string.
@@ -12,40 +13,21 @@
     Creates a random string with 32 bytes (256 bits) of randomness.
 #>
 
+[CmdletBinding()]
 param
 (
-    [uint32]$length = 32,
-    [switch]$verbose,
-    [switch]$debug
+    [uint32]$length = 32
 )
-
-function main()
-{
-    if ($length -eq 0)
-    {
-        Write-Error -Message '-length must be greater than 0.' -ErrorAction Stop
-    }
-    if ($verbose)
-    {
-        $VerbosePreference = 'Continue'
-    }
-    if ($debug)
-    {
-        $DebugPreference = 'Continue'
-    }
-    Get-RandomString ${param}
-}
 
 function Get-RandomString
 {
     param
     (
-        [System.Object]
-        ${param}
+        [uint32]$Length
     )
 
     # Initiate the byte array.
-    [byte[]]$bytes = ,0 * $length
+    [byte[]]$bytes = ,0 * $Length
 
     # Initiate RNGCSP and populate the byte array with a cryptographically random bytestream.
     # System.Random and get-random is not random enough for key generation.
@@ -56,4 +38,8 @@ function Get-RandomString
     [System.Convert]::ToBase64String($bytes)
 }
 
-main
+if ($length -eq 0)
+{
+    Write-Error -Message '-length must be greater than 0.' -ErrorAction Stop
+}
+Get-RandomString -Length $length
