@@ -12,12 +12,12 @@ function Get-RiddlerAuthenticationToken
         This function will return a Riddler.io authentication token given a set of valid credentials.
         Invalid credentials will return an error.
         .EXAMPLE
-        Get-RiddlerAuthenticationToken -email 'demo@example.com' -password 's3cr3t'
+        Get-RiddlerAuthenticationToken -email 'demo@example.com' -password (ConvertTo-SecureString 's3cr3t' -AsPlainText -Force)
         Retrieve a token, based off your credentials.
         .PARAMETER email
         Username for an account on Riddler.io
         .PARAMETER password
-        Password for an account on Riddler.io
+        Password for an account on Riddler.io. Accepts a SecureString.
     #>
     [CmdletBinding()]
     param
@@ -28,12 +28,21 @@ function Get-RiddlerAuthenticationToken
         $Email,
         # password for riddler.io login
         [Parameter(Mandatory = $true, Position = 1)]
-        [string]
+        [SecureString]
         $Password
     )
+    $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($Password)
+    try
+    {
+        $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
+    }
+    finally
+    {
+        [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
+    }
     $Credentials = @{
         'email'  = $Email
-        'password' = $Password
+        'password' = $plainPassword
     }
     $JsonCredentials = $Credentials|ConvertTo-Json
     $HttpHeaders = @{
@@ -80,7 +89,7 @@ function Get-RiddlerSearchResult
         .EXAMPLE
         Get-RiddlerSearchResult -token $RiddlerAuthenticationToken -query 'country:dk keyword:apache'
         Perform a search for 'country:dk keyword:apache' using a token retrieved with the following (example) command:
-        $RiddlerAuthenticationToken = Get-RiddlerAuthenticationToken -email 'demo@example.com' -password 's3cr3t'
+        $RiddlerAuthenticationToken = Get-RiddlerAuthenticationToken -email 'demo@example.com' -password (ConvertTo-SecureString 's3cr3t' -AsPlainText -Force)
         .EXAMPLE
         Get-RiddlerSearchResult  -token $RiddlerAuthenticationToken -query 'country:dk keyword:apache' -limit 5 -output addr,coordinates,pld
         Perform a search for 'country:dk keyword:apache', limited to 5 results and including the attributes addr,coordinates, and pld.
@@ -154,7 +163,7 @@ function Get-RiddlerSearchResult
 ##### Example code #####
 
 # Get authentication token
-$RiddlerAuthenticationToken = Get-RiddlerAuthenticationToken -Email 'demo@example.com' -Password 's3cr3t'
+$RiddlerAuthenticationToken = Get-RiddlerAuthenticationToken -Email 'demo@example.com' -Password (Read-Host -Prompt 'Riddler.io password' -AsSecureString)
 
 # Perform query
 $RiddlerResult = Get-RiddlerSearchResult -Token $RiddlerAuthenticationToken -Query 'host:saxo host:bank'
