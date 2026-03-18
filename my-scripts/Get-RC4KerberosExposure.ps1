@@ -89,6 +89,9 @@
                         MEDIUM); NULL/0 + no SPN + old password now MEDIUM (was
                         LOW). Accounts without SPNs are still at risk at
                         enforcement if they lack AES keys (AS-REQ / TGT path).
+    1.2.0   2026-03-18  Treat null/Never PasswordLastSet as old. Key state is
+                        unknown for accounts that have never had a password set,
+                        so they are now classified the same as pre-2009 accounts.
 #>
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
@@ -319,8 +322,9 @@ foreach ($acct in $allAccounts) {
     $hasSPN    = ($acct.ServicePrincipalName -and $acct.ServicePrincipalName.Count -gt 0)
     $isEnabled = if ($null -ne $acct.Enabled) { [bool]$acct.Enabled } else { $false }
 
-    # Accounts whose password was set before AES support likely lack AES keys
-    $pwdOld = ($acct.PasswordLastSet -and $acct.PasswordLastSet -lt $aesKeysCutoff)
+    # Accounts whose password was set before AES support likely lack AES keys.
+    # A null/Never PasswordLastSet is treated as old — the key state is unknown.
+    $pwdOld = (-not $acct.PasswordLastSet -or $acct.PasswordLastSet -lt $aesKeysCutoff)
 
     $impact      = Get-ImpactLevel -EType $eType -HasSPN $hasSPN -IsEnabled $isEnabled -PasswordOld $pwdOld
     $eTypeLabel  = Get-ETypeLabel -Value $eType
