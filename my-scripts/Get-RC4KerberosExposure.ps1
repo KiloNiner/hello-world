@@ -70,6 +70,12 @@
     CVE     : CVE-2026-20833
     Refs    : https://aka.ms/rc4kerberos
               https://learn.microsoft.com/en-us/windows-server/security/kerberos/detect-remediate-rc4-kerberos
+
+    Version History
+    ───────────────
+    1.0.0   2026-03-18  Initial release. Enumerates user, computer, and managed
+                        service accounts; classifies RC4/DES exposure; writes a
+                        Markdown report with optional CSV export.
 #>
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
