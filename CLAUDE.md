@@ -107,9 +107,28 @@ hello-world/
 - Pull requests are used for non-trivial changes; small fixes may go directly to `master`.
 - The `.gitignore` covers Python bytecode artifacts only. Add entries here if new generated file types are introduced.
 
+## CI
+
+### PowerShell linting (`.github/workflows/lint-powershell.yml`)
+
+Runs automatically on pull requests that touch any `.ps1` file. Uses
+[PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer) at
+`Error` and `Warning` severity. The workflow runs on `ubuntu-latest` with
+`pwsh` (PowerShell 7). PRs that introduce analyzer violations will fail the
+check and should not be merged until the issues are resolved.
+
+When writing or modifying PowerShell scripts, run PSScriptAnalyzer locally
+before opening a PR:
+
+```powershell
+Install-Module PSScriptAnalyzer -Force -Scope CurrentUser
+Invoke-ScriptAnalyzer -Path .\my-scripts\ -Recurse -Severity Error,Warning
+```
+
 ## No Build / Test Infrastructure
 
-There is no `Makefile`, `package.json`, CI pipeline, or test suite. Scripts are verified manually. When adding a new script:
+There is no `Makefile`, `package.json`, or test suite. Scripts are verified
+manually. When adding a new script:
 1. Write the script.
 2. Add an entry to `my-scripts/README.md` (or `other-scripts/` section if applicable).
 3. Commit both files together.
