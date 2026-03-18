@@ -84,6 +84,11 @@
     1.0.0   2026-03-18  Initial release. Enumerates user, computer, and managed
                         service accounts; classifies RC4/DES exposure; writes a
                         Markdown report with optional CSV export.
+    1.1.0   2026-03-18  Fix classification of NULL/0 accounts with pre-2009
+                        passwords. NULL/0 + SPN + old password now HIGH (was
+                        MEDIUM); NULL/0 + no SPN + old password now MEDIUM (was
+                        LOW). Accounts without SPNs are still at risk at
+                        enforcement if they lack AES keys (AS-REQ / TGT path).
 #>
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
