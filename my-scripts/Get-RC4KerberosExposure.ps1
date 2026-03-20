@@ -19,14 +19,22 @@
                 negotiating down to RC4. Remediation strongly recommended.
                 Also: DES explicitly present alongside AES, or AES-only but
                 password predates AES key provisioning (pre-2009).
-    MEDIUM    – msDS-SupportedEncryptionTypes is NULL / 0 (not set) AND the
-                account has at least one SPN (service account). The KDC
-                currently defaults to RC4 for service tickets on these accounts.
-                After mid-2026 DefaultDomainSupportedEncTypes moves to AES-only
-                these accounts will fail unless AES keys exist.
-    LOW       – msDS-SupportedEncryptionTypes is NULL / 0 AND no SPN. The KDC
-                uses the domain default; risk depends on domain-level settings
-                but no explicit RC4 dependency is present.
+    HIGH      – Also: msDS-SupportedEncryptionTypes is NULL / 0, account has at
+                least one SPN, AND password predates AES key provisioning
+                (pre-2009). Service tickets will fail at enforcement AND the
+                account likely has no AES key material at all.
+    MEDIUM    – msDS-SupportedEncryptionTypes is NULL / 0 AND either:
+                  (a) account has at least one SPN (service account), or
+                  (b) password predates AES key provisioning (pre-2009).
+                For (a): KDC defaults to RC4 for service tickets; after
+                mid-2026 enforcement these accounts will fail unless AES keys
+                exist. For (b): even without an SPN the account still needs a
+                TGT (AS-REQ); if it has no AES keys the KDC cannot issue an
+                AES-encrypted AS-REP and Kerberos logon breaks at enforcement.
+    LOW       – msDS-SupportedEncryptionTypes is NULL / 0 AND no SPN AND
+                password is recent (post-2008). The KDC uses the domain
+                default; risk depends on domain-level settings but AES keys
+                should be present.
     SAFE      – AES128 and/or AES256 explicitly set; no RC4/DES flag. No action
                 required.
 
@@ -70,6 +78,20 @@
     CVE     : CVE-2026-20833
     Refs    : https://aka.ms/rc4kerberos
               https://learn.microsoft.com/en-us/windows-server/security/kerberos/detect-remediate-rc4-kerberos
+
+    Version History
+    ───────────────
+    1.0.0   2026-03-18  Initial release. Enumerates user, computer, and managed
+                        service accounts; classifies RC4/DES exposure; writes a
+                        Markdown report with optional CSV export.
+    1.1.0   2026-03-18  Fix classification of NULL/0 accounts with pre-2009
+                        passwords. NULL/0 + SPN + old password now HIGH (was
+                        MEDIUM); NULL/0 + no SPN + old password now MEDIUM (was
+                        LOW). Accounts without SPNs are still at risk at
+                        enforcement if they lack AES keys (AS-REQ / TGT path).
+    1.2.0   2026-03-18  Treat null/Never PasswordLastSet as old. Key state is
+                        unknown for accounts that have never had a password set,
+                        so they are now classified the same as pre-2009 accounts.
 #>
 
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
@@ -135,9 +157,13 @@ function Get-ImpactLevel {
     if (-not $IsEnabled) { return "DISABLED" }
 
     if ($EType -eq 0) {
-        # NULL / not set
-        if ($HasSPN) { return "MEDIUM" }
-        else         { return "LOW"    }
+        # NULL / not set — risk is compounded when the password is old (pre-2009)
+        # because the account likely has no AES keys, affecting both service-ticket
+        # issuance (SPN path) and TGT/AS-REP issuance (no-SPN path).
+        if ($HasSPN -and $PasswordOld) { return "HIGH"   }
+        if ($HasSPN)                   { return "MEDIUM"  }
+        if ($PasswordOld)              { return "MEDIUM"  }
+        else                           { return "LOW"     }
     }
 
     $hasRC4 = [bool]($EType -band $ETYPE_RC4_HMAC)
@@ -296,8 +322,9 @@ foreach ($acct in $allAccounts) {
     $hasSPN    = ($acct.ServicePrincipalName -and $acct.ServicePrincipalName.Count -gt 0)
     $isEnabled = if ($null -ne $acct.Enabled) { [bool]$acct.Enabled } else { $false }
 
-    # Accounts whose password was set before AES support likely lack AES keys
-    $pwdOld = ($acct.PasswordLastSet -and $acct.PasswordLastSet -lt $aesKeysCutoff)
+    # Accounts whose password was set before AES support likely lack AES keys.
+    # A null/Never PasswordLastSet is treated as old — the key state is unknown.
+    $pwdOld = (-not $acct.PasswordLastSet -or $acct.PasswordLastSet -lt $aesKeysCutoff)
 
     $impact      = Get-ImpactLevel -EType $eType -HasSPN $hasSPN -IsEnabled $isEnabled -PasswordOld $pwdOld
     $eTypeLabel  = Get-ETypeLabel -Value $eType
@@ -442,8 +469,12 @@ with a **Service Principal Name / SPN**) that has no explicit attribute set and 
 never had its password reset since before 2009 will likely **lack AES keys** and will
 break at enforcement unless the password is reset first.
 
-User accounts **without** SPNs are lower risk because authentication for interactive
-logons is determined by the client device's configuration, not the account attribute.
+User accounts **without** SPNs are generally lower risk, but they are not immune.
+Even without an SPN, an account must still obtain a TGT via AS-REQ. The KDC
+encrypts the AS-REP with the account's own long-term key material. If that material
+is RC4-only (password predates 2009), the KDC cannot issue an AES AS-REP and
+Kerberos authentication will fail at enforcement regardless of whether an SPN is
+present. These accounts are therefore classified MEDIUM when the password is old.
 
 ### AES Key Provisioning
 
@@ -460,9 +491,9 @@ user accounts, but it is required for SPN-bearing service accounts.
 | Impact | Meaning | Action required before April 2026 |
 |--------|---------|-----------------------------------|
 | 🔴 **CRITICAL** | Account has RC4 or DES only (``0x04``, ``0x07``, or similar without AES). **Will break at enforcement.** | Immediate — reset password + set attribute |
-| 🟠 **HIGH** | RC4 explicitly included alongside AES (e.g. ``0x1C``); or DES present with AES; or AES-only but password predates AES key provisioning. | High priority — remove RC4/DES bits, reset password |
-| 🟡 **MEDIUM** | NULL/0 + has SPN. After April 2026 KDC will require AES keys the account may not have. | Required before April 2026 enforcement |
-| 🔵 **LOW** | NULL/0 + no SPN. Lower risk; depends on domain defaults. | Recommended — set explicit ``0x18`` for hygiene |
+| 🟠 **HIGH** | RC4 explicitly included alongside AES (e.g. ``0x1C``); or DES present with AES; or AES-only but password predates AES key provisioning; or NULL/0 + SPN + password pre-2009 (no AES keys, service tickets and TGT issuance both at risk). | High priority — remove RC4/DES bits, reset password |
+| 🟡 **MEDIUM** | NULL/0 + has SPN (service tickets at risk after enforcement); or NULL/0 + no SPN but password pre-2009 (TGT/AS-REP issuance breaks if account has no AES keys). | Required before April 2026 enforcement |
+| 🔵 **LOW** | NULL/0 + no SPN + recent password. Lower risk; depends on domain defaults but AES keys should be present. | Recommended — set explicit ``0x18`` for hygiene |
 | ✅ **SAFE** | AES-only, no RC4/DES. | No action required |
 | ⚫ **DISABLED** | Account is disabled. | Assess before re-enabling |
 

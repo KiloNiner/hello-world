@@ -1,0 +1,26 @@
+name: Lint PowerShell
+
+on:
+  pull_request:
+    paths:
+      - '**/*.ps1'
+
+jobs:
+  psscriptanalyzer:
+    name: PSScriptAnalyzer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
+          $results = Get-ChildItem -Recurse -Filter '*.ps1' |
+            Invoke-ScriptAnalyzer -Severity Error,Warning
+
+          if ($results) {
+            $results | Format-Table -AutoSize
+            exit 1
+          }
+          Write-Host "No issues found."
