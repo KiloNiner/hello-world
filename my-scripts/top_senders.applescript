@@ -11,14 +11,28 @@ tell application "Mail"
 	set inbox1 to mailbox "INBOX" of account "iCloud"
 	set inbox2 to mailbox "Indbakke" of account "Exchange"
 
-	repeat with msg in (messages of inbox1)
+	set msgs1 to (messages of inbox1 whose deleted status is false)
+	log "Scanning iCloud INBOX (" & (count of msgs1) & " messages)..."
+	set msgIdx to 0
+	repeat with msg in msgs1
 		set end of allSenders to sender of msg
+		set msgIdx to msgIdx + 1
+		if msgIdx mod 100 = 0 then do shell script "printf '.' > /dev/tty"
 	end repeat
+	do shell script "printf '\\n' > /dev/tty"
 
-	repeat with msg in (messages of inbox2)
+	set msgs2 to (messages of inbox2 whose deleted status is false)
+	log "Scanning Exchange Indbakke (" & (count of msgs2) & " messages)..."
+	set msgIdx to 0
+	repeat with msg in msgs2
 		set end of allSenders to sender of msg
+		set msgIdx to msgIdx + 1
+		if msgIdx mod 100 = 0 then do shell script "printf '.' > /dev/tty"
 	end repeat
+	do shell script "printf '\\n' > /dev/tty"
 end tell
+
+log "Counting senders (" & (count of allSenders) & " total)..."
 
 -- Count occurrences per sender
 set senderNames to {}
@@ -39,6 +53,8 @@ repeat with s in allSenders
 		set end of senderCounts to 1
 	end if
 end repeat
+
+log "Sorting " & (count of senderNames) & " unique senders..."
 
 -- Sort descending by count (bubble sort)
 set n to count of senderNames
@@ -66,5 +82,4 @@ repeat with i from 1 to limit
 	set output to output & i & ". [" & item i of senderCounts & "] " & item i of senderNames & linefeed
 end repeat
 
-log output
 return output
