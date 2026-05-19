@@ -2,7 +2,7 @@
 
 a bunch of script authored by me through the years.
 
-### add-killbit.ps1
+### New-KillBit.ps1
 Remotely add IE killbits. Requires access to the remote registry service.
 
 The CLSID argument must be a valid GUID in braces, e.g.
@@ -10,7 +10,7 @@ The CLSID argument must be a valid GUID in braces, e.g.
 are accepted. An invalid format is rejected before any registry changes are
 made.
 
-### archiver.vbs
+### Archiver.vbs
 Script for compressing and removing logfiles
 
 Utilizes any one of a number og external compressors as the builtin in
@@ -44,6 +44,24 @@ The default length of 32 equates to 256 bits of entropy.
 
 Arguments:
 * -length N   Byte length of entropy (default: 32; must be ≥ 1)
+
+### Get-RC4KerberosExposure.ps1
+Enumerates Active Directory user, computer, and managed service accounts and
+assesses their exposure to Microsoft's RC4 Kerberos deprecation
+(CVE-2026-20833). Classifies each account as CRITICAL, HIGH, MEDIUM, LOW,
+SAFE, or DISABLED based on its `msDS-SupportedEncryptionTypes` attribute,
+SPN presence, and password age. Writes a Markdown report and optionally a CSV
+export. Requires the `ActiveDirectory` PowerShell module (RSAT or a
+domain-joined DC).
+
+Arguments:
+* -OutputPath PATH              Path for the Markdown report (default: `.\RC4-Kerberos-Exposure-<timestamp>.md`)
+* -SearchBase DN                Optional LDAP distinguished name to scope the search (default: domain root)
+* -IncludeSafeAccounts          Include SAFE accounts in the output table
+* -IncludeComputers             Include computer accounts in the assessment
+* -IncludeManagedServiceAccounts  Include gMSA and sMSA accounts in the assessment
+* -ExportCsv                    Also write results to a CSV file alongside the Markdown report
+* -PassThru                     Emit result objects to the pipeline after writing the report
 
 ### riddler.ps1
 Client for the riddler.io API, made in PowerShell.
@@ -143,6 +161,25 @@ Animated terminal star field. Stars fade in and out through colour gradients
 using Unicode round and pointed glyphs. Colour depth (truecolor / 256-colour /
 ANSI) is detected automatically; terminal resize is handled at runtime. Press
 Ctrl-C to exit. Requires Python 3.8+ and an ANSI-capable terminal.
+
+### substitutes_downloader.py
+Downloads all pages of [The Substitutes](https://www.thesubstitutescomic.com/)
+webcomic and compresses them into a zip archive. Follows NEXT links
+sequentially from the first page. Files are named `NNNN_slug.ext` so
+alphabetical order matches reading order. Requires `requests` and
+`beautifulsoup4` (declared inline via PEP 723; run with `pipx run` for
+automatic dependency installation).
+
+Arguments:
+* --output DIR     Directory to save images (default: substitutes_pages)
+* --zip FILE       Output zip filename (default: substitutes.zip)
+* --limit N        Stop after N pages (0 = no limit; must be ≥ 0)
+* --delay SECS     Seconds between page requests (default: 1.5; must be ≥ 0)
+* --timeout SECS   Per-request timeout (default: 30; must be > 0)
+* --start-url URL  Override the starting URL
+* --no-resume      Redownload all pages even if already present
+* --no-zip         Skip creating the zip archive
+* --debug-nav      Dump all `<a>` tags from the first page and exit
 
 ---
 
