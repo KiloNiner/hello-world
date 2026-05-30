@@ -55,6 +55,7 @@ hello-world/
 | `pqc-report.py` | Tests domains for post-quantum TLS key exchange support; writes a Markdown report. |
 | `starfield.py` | Animated terminal star field (Python 3.8+, ANSI terminal). |
 | `substitutes_downloader.py` | (In `my-scripts/` root) — purpose undocumented in README. |
+| `webtoon_to_cbz.py` | Downloads a Webtoons series and packages each episode as a CBZ file. Uses `requests` + `beautifulsoup4` (PEP 723 inline deps). |
 
 ### AppleScript (`my-scripts/`)
 

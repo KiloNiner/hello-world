@@ -156,6 +156,22 @@ Run with:
 osascript top_senders.applescript
 ```
 
+### webtoon_to_cbz.py
+Downloads a Webtoons series and packages each episode as a CBZ (Comic Book
+ZIP) file. Fetches the episode list by paginating the series list page, then
+downloads all panel images for each episode and zips them in reading order.
+Also writes a `README.md` to the output directory with the series title,
+author, genre, and description. Requires `requests` and `beautifulsoup4`
+(declared inline via PEP 723; run with `pipx run` for automatic dependency
+installation).
+
+Arguments:
+* url              Webtoons series list URL (must contain `title_no=`)
+* --output DIR     Directory to write CBZ files (default: `./cbz/<series-name>`)
+* --start N        First episode number to download (default: 1)
+* --end N          Last episode number to download, inclusive (default: all)
+* --delay SECS     Seconds between episode requests (default: 0.5; must be ≥ 0)
+
 ### starfield.py
 Animated terminal star field. Stars fade in and out through colour gradients
 using Unicode round and pointed glyphs. Colour depth (truecolor / 256-colour /
