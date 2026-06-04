@@ -178,8 +178,8 @@ def make_cbz(path, images):
             zf.writestr(f"{i:04d}{ext}", data)
 
 
-def download_chapter(session, slug, start, end, cbz_path, delay):
-    """Download pages start–end and write cbz_path. Returns number of pages saved."""
+def fetch_pages(session, slug, start, end, delay):
+    """Download and return images for pages start–end as [(bytes, ext), …]."""
     images = []
     for page_num in range(start, end + 1):
         print(f"    fetching page {page_num}/{end} …", end="\r")
@@ -194,10 +194,42 @@ def download_chapter(session, slug, start, end, cbz_path, delay):
         except Exception as exc:
             print(f"\n    ERROR on page {page_num}: {exc}")
         time.sleep(delay)
+    return images
 
+
+def extract_cbz(path):
+    """Return images from an existing CBZ as [(bytes, ext), …], sorted by filename."""
+    with zipfile.ZipFile(path, "r") as zf:
+        names = sorted(zf.namelist(), key=lambda n: int(re.match(r"(\d+)", n).group(1)))
+        return [(zf.read(name), os.path.splitext(name)[1]) for name in names]
+
+
+def download_chapter(session, slug, start, end, cbz_path, delay):
+    """Full download of pages start–end into cbz_path. Returns page count."""
+    images = fetch_pages(session, slug, start, end, delay)
     if images:
         make_cbz(cbz_path, images)
     return len(images)
+
+
+def update_chapter(session, slug, cbz_path, start, prev_end, new_end, delay):
+    """Reuse existing CBZ pages and append only the new ones.
+
+    Extracts the current CBZ, validates the page count matches prev_end-start+1,
+    fetches only the delta pages (prev_end+1 – new_end), then rewrites the CBZ.
+    Returns (reused, fetched). Raises ValueError if the CBZ is unusable.
+    """
+    existing = extract_cbz(cbz_path)
+    expected = prev_end - start + 1
+    if len(existing) != expected:
+        raise ValueError(f"CBZ has {len(existing)} pages, expected {expected}")
+
+    new_images = fetch_pages(session, slug, prev_end + 1, new_end, delay)
+
+    tmp = cbz_path.with_suffix(".tmp")
+    make_cbz(tmp, existing + new_images)
+    tmp.replace(cbz_path)
+    return len(existing), len(new_images)
 
 
 def main():
@@ -278,9 +310,20 @@ def main():
                 chapter_states[start] = {"end": end, "title": title, "cbz": cbz_name}
                 continue
 
-            # Page range grew (or CBZ went missing): re-download
-            if prev["end"] != end:
-                print(f"  {cbz_name}  [updating pages {prev['end'] + 1}–{end}]")
+            if prev["end"] < end and cbz_path.exists():
+                # Chapter grew — reuse existing pages, fetch only the delta
+                print(f"  {cbz_name}  [updating — appending pages {prev['end'] + 1}–{end}]")
+                try:
+                    reused, fetched = update_chapter(
+                        session, args.slug, cbz_path, start, prev["end"], end, args.delay
+                    )
+                    print(f"    updated → {cbz_name}  ({reused} reused + {fetched} new)          ")
+                    chapter_states[start] = {"end": end, "title": title, "cbz": cbz_name}
+                    save_state(state_path, args.slug, last_page, chapter_states)
+                    print()
+                    continue
+                except Exception as exc:
+                    print(f"\n    incremental update failed ({exc}), re-downloading in full…")
             else:
                 print(f"  {cbz_name}  [re-downloading — CBZ missing]")
         else:
