@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S pipx run
 # /// script
 # requires-python = ">=3.9"
 # dependencies = [
