@@ -305,10 +305,14 @@ def main():
                 prev_cbz.rename(cbz_path)
                 print(f"  renamed → {cbz_name}")
 
-            if prev["end"] == end and cbz_path.exists():
+            expected = end - start + 1
+            complete = prev.get("pages", expected) == expected
+            if prev["end"] == end and complete and cbz_path.exists():
                 print(f"  {cbz_name}  [up to date]")
-                chapter_states[start] = {"end": end, "title": title, "cbz": cbz_name}
+                chapter_states[start] = {"end": end, "pages": expected, "title": title, "cbz": cbz_name}
                 continue
+            if prev["end"] == end and not complete and cbz_path.exists():
+                print(f"  {cbz_name}  [incomplete — {prev.get('pages', '?')}/{expected} pages, re-downloading]")
 
             if prev["end"] < end and cbz_path.exists():
                 # Chapter grew — reuse existing pages, fetch only the delta
@@ -317,8 +321,9 @@ def main():
                     reused, fetched = update_chapter(
                         session, args.slug, cbz_path, start, prev["end"], end, args.delay
                     )
+                    total = reused + fetched
                     print(f"    updated → {cbz_name}  ({reused} reused + {fetched} new)          ")
-                    chapter_states[start] = {"end": end, "title": title, "cbz": cbz_name}
+                    chapter_states[start] = {"end": end, "pages": total, "title": title, "cbz": cbz_name}
                     save_state(state_path, args.slug, last_page, chapter_states)
                     print()
                     continue
@@ -330,9 +335,13 @@ def main():
             print(f"  {cbz_name}  [new, pages {start}–{end}]")
 
         n = download_chapter(session, args.slug, start, end, cbz_path, args.delay)
+        expected = end - start + 1
         if n:
-            print(f"    saved → {cbz_name}  ({n} pages)          ")
-            chapter_states[start] = {"end": end, "title": title, "cbz": cbz_name}
+            if n < expected:
+                print(f"    saved → {cbz_name}  ({n}/{expected} pages — {expected - n} failed)          ")
+            else:
+                print(f"    saved → {cbz_name}  ({n} pages)          ")
+            chapter_states[start] = {"end": end, "pages": n, "title": title, "cbz": cbz_name}
             save_state(state_path, args.slug, last_page, chapter_states)
         else:
             print(f"    WARNING: no images collected for '{title}'")
