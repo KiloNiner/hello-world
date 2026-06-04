@@ -54,7 +54,8 @@ hello-world/
 | `meekcomic_downloader.py` | Downloads The Meek webcomic and zips pages. Uses `requests` + `beautifulsoup4` (PEP 723 inline deps). |
 | `pqc-report.py` | Tests domains for post-quantum TLS key exchange support; writes a Markdown report. |
 | `starfield.py` | Animated terminal star field (Python 3.8+, ANSI terminal). |
-| `substitutes_downloader.py` | (In `my-scripts/` root) — purpose undocumented in README. |
+| `slipshine_to_cbz.py` | Downloads a Slipshine comic series and packages each chapter as a CBZ file. Supports incremental updates: detects new pages and new chapters via a `.state.json` file, reuses existing CBZ content when appending pages. Requires Basic Auth credentials. Uses `requests` + `beautifulsoup4` (PEP 723 inline deps). |
+| `substitutes_downloader.py` | Downloads The Substitutes webcomic and packages pages into a zip archive. Uses `requests` + `beautifulsoup4` (PEP 723 inline deps). |
 | `webtoon_to_cbz.py` | Downloads a Webtoons series and packages each episode as a CBZ file. Uses `requests` + `beautifulsoup4` (PEP 723 inline deps). |
 
 ### AppleScript (`my-scripts/`)
