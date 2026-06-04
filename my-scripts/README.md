@@ -156,6 +156,23 @@ Run with:
 osascript top_senders.applescript
 ```
 
+### slipshine_to_cbz.py
+Downloads a comic series from Slipshine (members.slipshine.net) and packages
+each chapter as a CBZ (Comic Book ZIP) file. Fetches the chapter list and
+metadata from the comic's index page, downloads the cover image, writes a
+`README.md` to the output directory, then downloads each chapter's pages via
+the reader and packs them in reading order. Requires a valid Slipshine
+membership (Basic Auth credentials). Requires `requests` and `beautifulsoup4`
+(declared inline via PEP 723; run with `pipx run` for automatic dependency
+installation).
+
+Arguments:
+* slug              Comic slug as it appears in the URL, e.g. `scrawled`
+* --username / -u   Slipshine username (required)
+* --password / -p   Slipshine password (required)
+* --output / -o     Directory to write files (default: `~/Downloads/<slug>`)
+* --delay SECS      Seconds between page requests (default: 0.5; must be ≥ 0)
+
 ### webtoon_to_cbz.py
 Downloads a Webtoons series and packages each episode as a CBZ (Comic Book
 ZIP) file. Fetches the episode list by paginating the series list page, then
