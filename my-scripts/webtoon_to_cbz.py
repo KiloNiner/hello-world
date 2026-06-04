@@ -133,11 +133,20 @@ def get_image_urls(session, episode_url):
     return urls
 
 
-def download_image(session, url, referer):
+def download_image(session, url, referer, retries=3):
     hdrs = {**HEADERS, "Referer": referer}
-    r = session.get(url, headers=hdrs, timeout=30)
-    r.raise_for_status()
-    return r.content
+    for attempt in range(1, retries + 1):
+        try:
+            r = session.get(url, headers=hdrs, timeout=30)
+            r.raise_for_status()
+            return r.content
+        except Exception as exc:
+            if attempt < retries:
+                wait = 2 ** attempt
+                print(f"\n         image failed (attempt {attempt}/{retries}): {exc} — retrying in {wait}s…")
+                time.sleep(wait)
+            else:
+                raise
 
 
 def make_cbz(output_dir, series_name, ep_no, ep_title, images):
@@ -157,6 +166,7 @@ def main():
     parser.add_argument("--start", type=int, default=1, help="First episode number")
     parser.add_argument("--end", type=int, default=None, help="Last episode number (inclusive)")
     parser.add_argument("--delay", type=float, default=0.5, help="Seconds between requests")
+    parser.add_argument("--retries", type=int, default=3, help="Retry attempts per image on failure with exponential backoff (default: 3)")
     args = parser.parse_args()
 
     list_url, title_no, series_name = parse_series_url(args.url)
@@ -196,7 +206,7 @@ def main():
             images = []
             for j, url in enumerate(img_urls, 1):
                 print(f"         image {j}/{len(img_urls)}", end="\r")
-                data = download_image(session, url, ep["url"])
+                data = download_image(session, url, ep["url"], args.retries)
                 ext = os.path.splitext(urlparse(url).path)[1] or ".jpg"
                 images.append((data, ext))
                 time.sleep(0.1)
