@@ -178,21 +178,35 @@ def make_cbz(path, images):
             zf.writestr(f"{i:04d}{ext}", data)
 
 
-def fetch_pages(session, slug, start, end, delay):
-    """Download and return images for pages start–end as [(bytes, ext), …]."""
+def fetch_pages(session, slug, start, end, delay, retries=3):
+    """Download and return images for pages start–end as [(bytes, ext), …].
+
+    Each page is retried up to `retries` times with exponential backoff before
+    being skipped.
+    """
     images = []
     for page_num in range(start, end + 1):
         print(f"    fetching page {page_num}/{end} …", end="\r")
-        try:
-            img_url = get_page_image_url(session, slug, page_num)
-            if not img_url:
-                print(f"\n    WARNING: no image on page {page_num}, skipping")
-                continue
-            data = download_bytes(session, img_url)
-            ext = os.path.splitext(img_url)[1] or ".png"
-            images.append((data, ext))
-        except Exception as exc:
-            print(f"\n    ERROR on page {page_num}: {exc}")
+        for attempt in range(1, retries + 1):
+            try:
+                img_url = get_page_image_url(session, slug, page_num)
+                if not img_url:
+                    print(f"\n    WARNING: no image on page {page_num}, skipping")
+                    break
+                data = download_bytes(session, img_url)
+                ext = os.path.splitext(img_url)[1] or ".png"
+                images.append((data, ext))
+                break
+            except Exception as exc:
+                if attempt < retries:
+                    wait = 2 ** attempt
+                    print(
+                        f"\n    page {page_num} failed (attempt {attempt}/{retries}): {exc}"
+                        f" — retrying in {wait}s…"
+                    )
+                    time.sleep(wait)
+                else:
+                    print(f"\n    ERROR on page {page_num}: {exc} (gave up after {retries} attempts)")
         time.sleep(delay)
     return images
 
@@ -204,15 +218,15 @@ def extract_cbz(path):
         return [(zf.read(name), os.path.splitext(name)[1]) for name in names]
 
 
-def download_chapter(session, slug, start, end, cbz_path, delay):
+def download_chapter(session, slug, start, end, cbz_path, delay, retries=3):
     """Full download of pages start–end into cbz_path. Returns page count."""
-    images = fetch_pages(session, slug, start, end, delay)
+    images = fetch_pages(session, slug, start, end, delay, retries)
     if images:
         make_cbz(cbz_path, images)
     return len(images)
 
 
-def update_chapter(session, slug, cbz_path, start, prev_end, new_end, delay):
+def update_chapter(session, slug, cbz_path, start, prev_end, new_end, delay, retries=3):
     """Reuse existing CBZ pages and append only the new ones.
 
     Extracts the current CBZ, validates the page count matches prev_end-start+1,
@@ -224,7 +238,7 @@ def update_chapter(session, slug, cbz_path, start, prev_end, new_end, delay):
     if len(existing) != expected:
         raise ValueError(f"CBZ has {len(existing)} pages, expected {expected}")
 
-    new_images = fetch_pages(session, slug, prev_end + 1, new_end, delay)
+    new_images = fetch_pages(session, slug, prev_end + 1, new_end, delay, retries)
 
     tmp = cbz_path.with_suffix(".tmp")
     make_cbz(tmp, existing + new_images)
@@ -244,6 +258,10 @@ def main():
     parser.add_argument(
         "--delay", type=float, default=0.5,
         help="Seconds between page requests (default: 0.5)"
+    )
+    parser.add_argument(
+        "--retries", type=int, default=3,
+        help="Retry attempts per page on failure with exponential backoff (default: 3)"
     )
     args = parser.parse_args()
 
@@ -307,19 +325,20 @@ def main():
 
             expected = end - start + 1
             complete = prev.get("pages", expected) == expected
+
             if prev["end"] == end and complete and cbz_path.exists():
                 print(f"  {cbz_name}  [up to date]")
                 chapter_states[start] = {"end": end, "pages": expected, "title": title, "cbz": cbz_name}
                 continue
+
             if prev["end"] == end and not complete and cbz_path.exists():
                 print(f"  {cbz_name}  [incomplete — {prev.get('pages', '?')}/{expected} pages, re-downloading]")
-
-            if prev["end"] < end and cbz_path.exists():
+            elif prev["end"] < end and cbz_path.exists():
                 # Chapter grew — reuse existing pages, fetch only the delta
                 print(f"  {cbz_name}  [updating — appending pages {prev['end'] + 1}–{end}]")
                 try:
                     reused, fetched = update_chapter(
-                        session, args.slug, cbz_path, start, prev["end"], end, args.delay
+                        session, args.slug, cbz_path, start, prev["end"], end, args.delay, args.retries
                     )
                     total = reused + fetched
                     print(f"    updated → {cbz_name}  ({reused} reused + {fetched} new)          ")
@@ -334,7 +353,7 @@ def main():
         else:
             print(f"  {cbz_name}  [new, pages {start}–{end}]")
 
-        n = download_chapter(session, args.slug, start, end, cbz_path, args.delay)
+        n = download_chapter(session, args.slug, start, end, cbz_path, args.delay, args.retries)
         expected = end - start + 1
         if n:
             if n < expected:
