@@ -214,13 +214,14 @@ def main():
         end = chapters[i + 1][0] - 1 if i + 1 < len(chapters) else last_page
         ranges.append((start, end, title))
 
-    for start, end, title in ranges:
-        cbz_path = out / f"{safe_name(title)}.cbz"
+    for ch_num, (start, end, title) in enumerate(ranges, 1):
+        cbz_name = f"{args.slug} - {ch_num:02d} - {safe_name(title)}.cbz"
+        cbz_path = out / cbz_name
         if cbz_path.exists():
-            print(f"  {title}  [skipped — already exists]")
+            print(f"  {cbz_name}  [skipped — already exists]")
             continue
 
-        print(f"  {title}  (pages {start}–{end})")
+        print(f"  {cbz_name}  (pages {start}–{end})")
         images = []
 
         for page_num in range(start, end + 1):
