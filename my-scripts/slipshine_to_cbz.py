@@ -9,10 +9,12 @@
 """Download a Slipshine comic series and package each chapter as a CBZ file."""
 
 import argparse
+import json
 import os
 import re
 import time
 import zipfile
+from datetime import datetime, timezone
 from pathlib import Path
 
 import requests
@@ -41,7 +43,7 @@ def make_session(username, password):
 
 
 def parse_index(session, slug):
-    """Fetch the comic index page and return (soup, chapters, metadata).
+    """Fetch the comic index page and return (chapters, metadata).
 
     chapters: [(start_page, title), …]
     metadata: dict with title, description, author, genre, pub_date, cover_url
@@ -67,12 +69,10 @@ def parse_index(session, slug):
     if info_div:
         text = info_div.get_text("\n", strip=True)
 
-        # Description: everything before "Created by"
         m = re.search(r"^(.*?)Created by", text, re.S)
         if m:
             meta["description"] = " ".join(m.group(1).split())
 
-        # Author: the link after "Created by"
         created = info_div.find(string=re.compile(r"Created by", re.I))
         if created:
             a = created.find_next("a")
@@ -87,7 +87,6 @@ def parse_index(session, slug):
         if m:
             meta["pub_date"] = m.group(1).strip()
 
-    # --- Cover image ---
     cover_img = soup.find("img", src=re.compile(rf"/images/boxes/{re.escape(slug)}"))
     if cover_img:
         src = cover_img["src"]
@@ -128,10 +127,7 @@ def download_bytes(session, url):
 
 
 def write_readme(out, slug, meta, chapters):
-    lines = [
-        f"# {meta['title']}",
-        "",
-    ]
+    lines = [f"# {meta['title']}", ""]
     if meta["author"]:
         lines.append(f"**Author:** {meta['author']}  ")
     if meta["genre"]:
@@ -150,6 +146,28 @@ def write_readme(out, slug, meta, chapters):
     (out / "README.md").write_text("\n".join(lines), encoding="utf-8")
 
 
+def load_state(path):
+    """Return saved chapter state keyed by start_page, or empty dict."""
+    if path.exists():
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            return {int(k): v for k, v in data.get("chapters", {}).items()}
+        except Exception:
+            pass
+    return {}
+
+
+def save_state(path, slug, last_page, chapter_states):
+    """Persist chapter state to disk."""
+    data = {
+        "slug": slug,
+        "last_page": last_page,
+        "updated": datetime.now(timezone.utc).isoformat(),
+        "chapters": {str(k): v for k, v in chapter_states.items()},
+    }
+    path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+
 def safe_name(s):
     return re.sub(r'[<>:"/\\|?*]', "", s).strip()[:80]
 
@@ -158,6 +176,28 @@ def make_cbz(path, images):
     with zipfile.ZipFile(path, "w", zipfile.ZIP_STORED) as zf:
         for i, (data, ext) in enumerate(images, 1):
             zf.writestr(f"{i:04d}{ext}", data)
+
+
+def download_chapter(session, slug, start, end, cbz_path, delay):
+    """Download pages start–end and write cbz_path. Returns number of pages saved."""
+    images = []
+    for page_num in range(start, end + 1):
+        print(f"    fetching page {page_num}/{end} …", end="\r")
+        try:
+            img_url = get_page_image_url(session, slug, page_num)
+            if not img_url:
+                print(f"\n    WARNING: no image on page {page_num}, skipping")
+                continue
+            data = download_bytes(session, img_url)
+            ext = os.path.splitext(img_url)[1] or ".png"
+            images.append((data, ext))
+        except Exception as exc:
+            print(f"\n    ERROR on page {page_num}: {exc}")
+        time.sleep(delay)
+
+    if images:
+        make_cbz(cbz_path, images)
+    return len(images)
 
 
 def main():
@@ -177,6 +217,8 @@ def main():
 
     out = Path(args.output) if args.output else Path.home() / "Downloads" / args.slug
     out.mkdir(parents=True, exist_ok=True)
+
+    state_path = out / ".state.json"
 
     session = make_session(args.username, args.password)
 
@@ -198,15 +240,13 @@ def main():
         ext = os.path.splitext(meta["cover_url"])[1] or ".png"
         cover_path = out / f"cover{ext}"
         if not cover_path.exists():
-            print(f"Downloading cover image…")
+            print("Downloading cover image…")
             cover_path.write_bytes(download_bytes(session, meta["cover_url"]))
             print(f"  saved → {cover_path.name}")
-        else:
-            print(f"  cover already exists, skipping")
 
     # README
     write_readme(out, args.slug, meta, chapters)
-    print(f"Wrote README.md\n")
+    print("Wrote README.md\n")
 
     # Build chapter page ranges
     ranges = []
@@ -214,37 +254,48 @@ def main():
         end = chapters[i + 1][0] - 1 if i + 1 < len(chapters) else last_page
         ranges.append((start, end, title))
 
+    # Load previously saved state (keyed by chapter start_page)
+    saved = load_state(state_path)
+    chapter_states = dict(saved)
+
     for ch_num, (start, end, title) in enumerate(ranges, 1):
         cbz_name = f"{args.slug} - {ch_num:02d} - {safe_name(title)}.cbz"
         cbz_path = out / cbz_name
-        if cbz_path.exists():
-            print(f"  {cbz_name}  [skipped — already exists]")
-            continue
 
-        print(f"  {cbz_name}  (pages {start}–{end})")
-        images = []
+        prev = saved.get(start)
 
-        for page_num in range(start, end + 1):
-            print(f"    fetching page {page_num}/{end} …", end="\r")
-            try:
-                img_url = get_page_image_url(session, args.slug, page_num)
-                if not img_url:
-                    print(f"\n    WARNING: no image on page {page_num}, skipping")
-                    continue
-                data = download_bytes(session, img_url)
-                ext = os.path.splitext(img_url)[1] or ".png"
-                images.append((data, ext))
-            except Exception as exc:
-                print(f"\n    ERROR on page {page_num}: {exc}")
-            time.sleep(args.delay)
+        # Detect what needs doing
+        if prev:
+            prev_cbz = out / prev["cbz"]
 
-        if images:
-            make_cbz(cbz_path, images)
-            print(f"    saved → {cbz_path.name}  ({len(images)} pages)          ")
+            # Rename CBZ on disk if the filename changed (title or numbering)
+            if prev["cbz"] != cbz_name and prev_cbz.exists():
+                prev_cbz.rename(cbz_path)
+                print(f"  renamed → {cbz_name}")
+
+            if prev["end"] == end and cbz_path.exists():
+                print(f"  {cbz_name}  [up to date]")
+                chapter_states[start] = {"end": end, "title": title, "cbz": cbz_name}
+                continue
+
+            # Page range grew (or CBZ went missing): re-download
+            if prev["end"] != end:
+                print(f"  {cbz_name}  [updating pages {prev['end'] + 1}–{end}]")
+            else:
+                print(f"  {cbz_name}  [re-downloading — CBZ missing]")
+        else:
+            print(f"  {cbz_name}  [new, pages {start}–{end}]")
+
+        n = download_chapter(session, args.slug, start, end, cbz_path, args.delay)
+        if n:
+            print(f"    saved → {cbz_name}  ({n} pages)          ")
+            chapter_states[start] = {"end": end, "title": title, "cbz": cbz_name}
+            save_state(state_path, args.slug, last_page, chapter_states)
         else:
             print(f"    WARNING: no images collected for '{title}'")
         print()
 
+    save_state(state_path, args.slug, last_page, chapter_states)
     print("Done.")
 
 

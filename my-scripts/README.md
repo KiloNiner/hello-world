@@ -161,10 +161,13 @@ Downloads a comic series from Slipshine (members.slipshine.net) and packages
 each chapter as a CBZ (Comic Book ZIP) file. Fetches the chapter list and
 metadata from the comic's index page, downloads the cover image, writes a
 `README.md` to the output directory, then downloads each chapter's pages via
-the reader and packs them in reading order. Requires a valid Slipshine
-membership (Basic Auth credentials). Requires `requests` and `beautifulsoup4`
-(declared inline via PEP 723; run with `pipx run` for automatic dependency
-installation).
+the reader and packs them in reading order. On subsequent runs, detects new
+pages and new chapters by comparing the current site state to a `.state.json`
+file in the output directory: chapters with an expanded page range are
+re-downloaded, wholly new chapters are fetched, and unchanged chapters are
+skipped. Requires a valid Slipshine membership (Basic Auth credentials).
+Requires `requests` and `beautifulsoup4` (declared inline via PEP 723; run
+with `pipx run` for automatic dependency installation).
 
 Arguments:
 * slug              Comic slug as it appears in the URL, e.g. `scrawled`
