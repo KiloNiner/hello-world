@@ -51,6 +51,7 @@ hello-world/
 |------|---------|
 | `convert_to_wallabag.py` | Converts a Matter CSV export to Wallabag JSON import format. |
 | `download_mare.py` | Downloads the Mare Internum webcomic. Standard library only. |
+| `everblue_downloader.py` | Downloads the Everblue webcomic and packages pages into a zip archive. Follows Next links from the first page; stops when Next has no href (last page). Uses `requests` + `beautifulsoup4` (PEP 723 inline deps). |
 | `meekcomic_downloader.py` | Downloads The Meek webcomic and zips pages. Uses `requests` + `beautifulsoup4` (PEP 723 inline deps). |
 | `pqc-report.py` | Tests domains for post-quantum TLS key exchange support; writes a Markdown report. |
 | `starfield.py` | Animated terminal star field (Python 3.8+, ANSI terminal). |
