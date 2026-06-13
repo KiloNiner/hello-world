@@ -58,6 +58,7 @@ hello-world/
 | `slipshine_to_cbz.py` | Downloads a Slipshine comic series and packages each chapter as a CBZ file. Supports incremental updates: detects new pages and new chapters via a `.state.json` file, reuses existing CBZ content when appending pages. Requires Basic Auth credentials. Uses `requests` + `beautifulsoup4` (PEP 723 inline deps). |
 | `substitutes_downloader.py` | Downloads The Substitutes webcomic and packages pages into a zip archive. Uses `requests` + `beautifulsoup4` (PEP 723 inline deps). |
 | `webtoon_to_cbz.py` | Downloads a Webtoons series and packages each episode as a CBZ file. Uses `requests` + `beautifulsoup4` (PEP 723 inline deps). |
+| `wotch_downloader.py` | Downloads The Wotch webcomic and packages pages into a zip archive. Follows "Next ›" links; slug taken from `?comic=` query param. Uses `requests` + `beautifulsoup4` (PEP 723 inline deps). |
 
 ### AppleScript (`my-scripts/`)
 

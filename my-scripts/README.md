@@ -198,6 +198,25 @@ using Unicode round and pointed glyphs. Colour depth (truecolor / 256-colour /
 ANSI) is detected automatically; terminal resize is handled at runtime. Press
 Ctrl-C to exit. Requires Python 3.8+ and an ANSI-capable terminal.
 
+### wotch_downloader.py
+Downloads all pages of [The Wotch](https://www.thewotch.com/) and compresses
+them into a zip archive. Follows "Next ›" links sequentially from the first page;
+stops when the Next link has no href (last page). The comic slug is taken from the
+`?comic=` query parameter and used to name output files. Requires `requests` and
+`beautifulsoup4` (declared inline via PEP 723; run with `pipx run` for automatic
+dependency installation).
+
+Arguments:
+* --output DIR     Directory to save images (default: wotch_pages)
+* --zip FILE       Output zip filename (default: wotch.zip)
+* --limit N        Stop after N pages (0 = no limit; must be ≥ 0)
+* --delay SECS     Seconds between page requests (default: 1.5; must be ≥ 0)
+* --timeout SECS   Per-request timeout (default: 30; must be > 0)
+* --start-url URL  Override the starting URL
+* --no-resume      Redownload all pages even if already present
+* --no-zip         Skip creating the zip archive
+* --debug-nav      Dump all `<a>` tags and comic images from the first page and exit
+
 ### everblue_downloader.py
 Downloads all pages of [Everblue](http://www.everblue-comic.com/) and compresses
 them into a zip archive. Follows Next links sequentially from the first page
