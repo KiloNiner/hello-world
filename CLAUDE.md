@@ -15,6 +15,9 @@ hello-world/
 │   └── ...             # Individual script files
 ├── other-scripts/      # Third-party or auxiliary scripts
 │   └── invoke-sql.ps1  # Raw MSSQL query utility (PowerShell)
+├── dotfiles/           # Personal configuration files (for symlinking or reference)
+│   └── ghostty/
+│       └── themes/     # Ghostty terminal color themes (drop into ~/.config/ghostty/themes/)
 ├── pages/              # Static markdown and HTML pages
 │   ├── software-and-sites.md
 │   ├── pgp.md

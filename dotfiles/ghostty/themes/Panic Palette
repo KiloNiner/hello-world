@@ -1,0 +1,22 @@
+# Panic Palette (official theme by Panic Inc)
+# Source: https://download.panic.com/misc/Panic%20Palette.terminal.zip
+background = 111C2A
+foreground = F6F7EE
+cursor-color = F6F7EE
+
+palette = 0=#111C2A
+palette = 1=#F82939
+palette = 2=#3BEB2A
+palette = 3=#FCC146
+palette = 4=#2D4562
+palette = 5=#6F4EBC
+palette = 6=#63CCE3
+palette = 7=#838C95
+palette = 8=#454640
+palette = 9=#F82939
+palette = 10=#3BEB2A
+palette = 11=#FCC146
+palette = 12=#2D4562
+palette = 13=#6F4EBC
+palette = 14=#63CCE3
+palette = 15=#838C95
