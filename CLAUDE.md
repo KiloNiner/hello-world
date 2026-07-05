@@ -52,6 +52,7 @@ hello-world/
 
 | File | Purpose |
 |------|---------|
+| `check_frontmatter.py` | Checks YAML frontmatter well-formedness across a directory of markdown notes (e.g. an Obsidian vault). Flags real parse errors and duplicated/nested frontmatter blocks that hide a note's real tags. Exits 1 on any problem (CI-friendly). Uses `pyyaml` (PEP 723 inline deps). |
 | `convert_to_wallabag.py` | Converts a Matter CSV export to Wallabag JSON import format. |
 | `download_mare.py` | Downloads the Mare Internum webcomic. Standard library only. |
 | `everblue_downloader.py` | Downloads the Everblue webcomic and packages pages into a zip archive. Follows Next links from the first page; stops when Next has no href (last page). Uses `requests` + `beautifulsoup4` (PEP 723 inline deps). |

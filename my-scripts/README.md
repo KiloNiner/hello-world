@@ -126,6 +126,22 @@ Arguments:
 * --timeout SECS       Per-connection timeout (default: 10; must be > 0)
 * --verbose            Print progress information to stderr
 
+### check_frontmatter.py
+Checks YAML frontmatter well-formedness across a directory of markdown notes
+(e.g. an Obsidian vault). Reports real YAML parse errors (bad quoting/escaping,
+broken block mappings, unclosed `---` blocks) and a specific corruption
+pattern: a second `---...---` block sitting at the top of the note body that
+itself parses as frontmatter (has a recognized key like `tags`/`aliases`/
+`summary`). That pattern hides the note's real tags from anything reading only
+the outer block — a plain `---` horizontal rule in the body is not flagged,
+only a second block that actually looks like frontmatter is. Exits 1 if any
+problems were found, 0 otherwise, so it can be used as a CI/pre-commit gate.
+Requires `pyyaml` (declared inline via PEP 723; run with `pipx run` for
+automatic dependency installation).
+
+Arguments:
+* path   Directory to scan recursively for `*.md` files (required)
+
 ### cleanup_inbox.applescript
 Moves newsletter and commercial emails from iCloud INBOX and Exchange Indbakke
 to their respective Deleted folders. Sender addresses are loaded at runtime
